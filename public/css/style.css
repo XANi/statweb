@@ -194,3 +194,13 @@ padding-right: 160px;
 font-family: sans-serif;
 font-size: 10px;
 }
+
+.green {
+    background-color: green;
+    color: blue;
+}
+
+.red {
+    color: yellow;
+    background-color: red;
+}
