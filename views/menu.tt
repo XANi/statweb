@@ -1,0 +1,21 @@
+<h3>Create</h3>
+ <li><a href="[% request_base %]/graph/add">New Graph/Graph template</a></li>
+ <li><a href="[% request_base %]/dashboard/add">New Dashboard</a></li>
+ <li><a href="[% request_base %]/tree/add">New tree</a></li>
+ <li><a href="[% request_base %]/hostgroup/add">New hostgroup</a></li>
+
+<h3>View</h3>
+ <li><a href="[% request_base %]/graph/search">Search graph</a></li>
+ <li><a href="[% request_base %]/tree/view">Graph tree</a></li>
+ <li><a href="[% request_base %]/ds/view">Data sources</a></li>
+
+<h3>Settings</h3>
+ <li><a href="[% request_base %]/cdef/edit">CDEF editor</a></li>
+ <li><a href="[% request_base %]/palette/edit">Palette Editor</a></li>
+ <li><a href="[% request_base %]/">Data sources</a></li>
+
+<h3>Export/Import</h3>
+ <li><a href="[% request_base %]/import/template">Import template</a></li>
+ <li><a href="[% request_base %]/export/template">Export template</a></li>
+ <li><a href="[% request_base %]/import/palette">Import palette</a></li>
+ <li><a href="[% request_base %]/export/palette">Export palette</a></li>

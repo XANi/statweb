@@ -19,11 +19,11 @@ font-size: 28px;
 color: #000;
 }
 
-a  {color: #03c}
+a  {
+ color: maroon;
+}
 a:hover {
-background-color: #03c;
-color: white;
-text-decoration: none;
+ text-decoration: none;
 }
 
 
@@ -195,12 +195,28 @@ font-family: sans-serif;
 font-size: 10px;
 }
 
-.green {
-    background-color: green;
-    color: blue;
+li.hover {
+    background-color: #aaaaaa;
 }
 
-.red {
-    color: yellow;
-    background-color: red;
+
+td.menu {
+    width: 200px;
+    border-right-style: dotted;
+    border-right-color: gray;
+    border-right-width: 2px;
+}
+td.content {
+    vertical-align:   top;
+}
+
+.menuitem {
+    ;
+}
+h3.menu {
+    font weight: bold;
+}
+
+li.menu {
+    color: black;
 }
