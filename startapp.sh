@@ -1,2 +1,3 @@
 #!/bin/sh
-date >> /tmp/statweb_app
+kill $(cat /tmp/statweb.pid);
+screen -fn -dmS statweb bin/app.pl
