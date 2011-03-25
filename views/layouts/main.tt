@@ -41,6 +41,7 @@
 	<td colspan=2 class="footer">
 	  <div id="footer">
 	    Powered by <a href="http://perldancer.org/">Dancer</a> [% dancer_version %]
+	    <br>[% INCLUDE version.tt %]
 	  </div>
 	</td>
       </tr>
