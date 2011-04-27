@@ -11,5 +11,8 @@ close(PID);
 get '/' => sub {
     template 'index';
 };
+get '/:type/:action' => sub {
+    template 'index';
+};
 
 true;
