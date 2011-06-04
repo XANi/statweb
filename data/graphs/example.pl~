@@ -1,0 +1,4 @@
+use JSON;
+my $g = {
+name => "Test graph",
+search_path => ".*cpu.*",

@@ -26,3 +26,5 @@ engines:
     start_tag: '[%'
     end_tag:   '%]'
 
+
+rrd_dir: "/var/lib/collectd/rrd"
