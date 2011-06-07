@@ -68,6 +68,7 @@ sub find_wanted {
 	  = stat($_);
 	if ($mode & S_IFREG) { # regular file
 	    ($rrd_name) = $file_path =~ /^$RRD_DIR\/(.*)/;
+	    $rrd_name =~ s/\.rrd$//;
 	    $RRD_INDEX->{$rrd_name} = 
 	      {
 	       path => $file_path,
@@ -76,6 +77,19 @@ sub find_wanted {
 	      }
 	  }
     }
+}
+
+sub generate_graph_config {
+    my $self = shift;
+    my $template = shift;
+    my $params = shift;
+    my @selected_rrd;
+    while (my ($name, $desc) = each (%$RRD_INDEX)) {
+	if ($name =~ /$template->{'search_path'}/) {
+	    push @selected_rrd, $name;
+	}
+    }
+    return \@selected_rrd;
 }
 
 sub get_index {

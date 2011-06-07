@@ -205,6 +205,7 @@ td.menu {
     border-right-style: dotted;
     border-right-color: gray;
     border-right-width: 2px;
+    vertical-align: top;
 }
 td.content {
     vertical-align:   top;

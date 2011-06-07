@@ -1,7 +1,11 @@
+#!/usr/bin/perl
+# Generate example graph template
 use JSON;
+my $json = JSON->new()->pretty();
 my $g = {
 name => "Test graph",
-search_path => ".*cpu.*",
+search_path => ".*\/network\/if_octets.*",
+selector => ".*\/network\/if_octets-(.*)",
 data_sources => [
 		 { name => 'tx',
 		   type => 'single',
@@ -17,14 +21,14 @@ data_sources => [
 data_math => [
 	      { type => "cdef-single",
 		source => tx,
-		name => "invert-$1",
+		name => "invert-tx",
 		def => "0,$,-",
 	      }
 	     ],
 graph => [
 	  { type => "LINE",
 	    color => "#FF0000",
-	    width => "1"
+	    width => "1",
 	    ds => tx,
 	  },
 	  { type => "AREA",
@@ -33,5 +37,5 @@ graph => [
 	  }
 	 ]
 	}
-	    
-		
+;
+print $json->encode($g);
