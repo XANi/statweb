@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use Carp qw(cluck croak);
 use Data::Dumper;
+use Dancer ':syntax';
 require Exporter;
 
 our @ISA = qw(Exporter);
@@ -92,6 +93,26 @@ sub generate_graph_config {
     return \@selected_rrd;
 }
 
+# get list of names matching template
+sub get_template_selection {
+    my $self = shift;
+    my $template_name = shift;
+    # load template
+    open(TEMP, '>', config->{'template_path'} . '/' . $template_name . '.json');
+    my $template = from_json ( do { local $/;  <TEMP> } );
+    my %selection;
+    while (my ($name, $desc) = each (%$RRD_INDEX)) {
+	if ($name =~ /$template->{'search_path'}/) {
+	    my $sel_name = $1;
+	    my $tmp_cnt=1;
+	    while (defined ${$tmp_cnt + 1} && $tmp_cnt < 10) {
+		$sel_name .= '-' . ${$tmp_cnt};
+	    }
+	    $selection{$sel_name}++;
+	}
+    }
+    return \%selection;
+}
 sub get_index {
     my $self = shift;
     return $RRD_INDEX;

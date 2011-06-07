@@ -24,6 +24,10 @@ get '/rrd/list' => sub {
 	return $rrddb->get_index();
     }
 };
+post '/graph/dump' => sub {
+#    if (!defined(params->{'template'} || !defined(params->{'select'}
+#    $rrd->generate_graph_config($graph_template, $graph_params;
+};
 
 get '/:type/:action' => sub {
     template 'index';
