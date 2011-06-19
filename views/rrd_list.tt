@@ -2,6 +2,6 @@
 [% FOREACH rrd IN rrd_list %]
 <b><li>[% rrd.key %]</b><br>
 [% FOREACH k IN rrd.value %]
- | [% k.key %] - [% k.value %] <br>
+ | [% k.key %] - <pre>[% k.value %]</pre> <br>
 [% END %]
 [% END %]

@@ -6,6 +6,7 @@ use warnings;
 use Carp qw(cluck croak);
 use Data::Dumper;
 use Dancer ':syntax';
+use RRDs;
 require Exporter;
 
 our @ISA = qw(Exporter);
@@ -53,7 +54,36 @@ sub index {
     *prune  = *File::Find::prune;
     my $self = shift;
     File::Find::find( {wanted => \&_find_wanted, follow => 1}, '/var/lib/collectd');
+    while(my ($key, $val) = each %$RRD_INDEX) {
+	    $RRD_INDEX->{$key}{'ds'} = Dumper $self->get_ds($key);
+	}
  }
+
+sub info {
+    my $self = shift;
+    my $rrd_name = shift;
+    if( !defined($RRD_INDEX->{$rrd_name}) ) {
+	cluck("RRD not in index");
+    }
+    return RRDs::info( $RRD_INDEX->{$rrd_name}{'path'} );
+}
+
+sub get_ds {
+    my $self = shift;
+    my $rrd_name = shift;
+    my $rrd_info = $self->info($rrd_name);
+    my @ds_list;
+    if ( !defined($rrd_info) ) {
+	cluck(q{$self->info() did not retur anything, bad RRD file?});
+	return
+    }
+    while( my($key, $val) = each %$rrd_info) {
+	if ($key =~ /^ds\[(.+)\]\.type$/) {
+	    push @ds_list, $1
+	}
+    }
+    return \@ds_list;
+}
 
 sub _find_wanted {
     use Fcntl ':mode';
@@ -75,8 +105,8 @@ sub _find_wanted {
 	       path => $file_path,
 	       filename => $file_name,
 	       time => time(),
-	      }
-	  }
+	      };
+	}
     }
 }
 
