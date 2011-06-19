@@ -18,8 +18,8 @@ get '/' => sub {
 };
 
 get '/rrd/list' => sub {
-    if ( $ENV{'HTTP_ACCEPT'} =~ /text\/html/ ) { # if browser wants html give html
-	template 'data', {content => Dumper $rrddb->get_index()};
+    if (defined($ENV{'HTTP_ACCEPT'}) && $ENV{'HTTP_ACCEPT'} =~ /text\/html/ ) { # if browser wants html give html
+	template 'rrd_list', {rrd_list => $rrddb->get_index()};
     } else { # rely on Mutable to return either json or xml
 	return $rrddb->get_index();
     }

@@ -52,10 +52,10 @@ sub index {
     *dir    = *File::Find::dir;
     *prune  = *File::Find::prune;
     my $self = shift;
-    File::Find::find( {wanted => \&find_wanted, follow => 1}, '/var/lib/collectd');
+    File::Find::find( {wanted => \&_find_wanted, follow => 1}, '/var/lib/collectd');
  }
 
-sub find_wanted {
+sub _find_wanted {
     use Fcntl ':mode';
     my $file_name = $_;
     my $file_path = $File::Find::name;
