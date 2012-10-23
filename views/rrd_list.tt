@@ -1,7 +1,0 @@
-
-[% FOREACH rrd IN rrd_list %]
-<b><li>[% rrd.key %]</b><br>
-[% FOREACH k IN rrd.value %]
- | [% k.key %] - <pre>[% k.value %]</pre> <br>
-[% END %]
-[% END %]
