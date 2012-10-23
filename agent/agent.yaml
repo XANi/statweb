@@ -1,0 +1,17 @@
+---
+sender:
+  default:
+    type: zmq
+    config:
+      address: epgm://br0;239.3.2.1:5555
+    tag: statweb-agent
+checks:
+  http-localhost:
+    type: http
+    url: http://localhost
+    timeout: 2
+
+  http-devrandom:
+    type: http
+    url: http://default.devrandom.pl
+    timeout: 10
