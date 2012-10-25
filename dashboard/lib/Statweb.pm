@@ -50,13 +50,14 @@ sub startup {
 
 	$self->respond_to(
 		json => {json => $datatable},
-		xml  => {text => '<hello>world</hello>'},
-		txt  => {text => 'asdsadasd'},
-		html => {text => 'asdasdasdas'},
+		xml  => {json => $datatable},
+		txt  => {json => $datatable},
+		html => {json => $datatable},
 	);
 	return "asdasd\n";
   });
   $r->get('/test')->to('example#welcome');
+
 }
 
 1;

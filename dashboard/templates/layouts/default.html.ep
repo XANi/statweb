@@ -3,9 +3,51 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <!-- Grab Google CDN's jQuery. fall back to local if necessary -->
+    <link rel="stylesheet" href="/static/css/table.css" />
     <script type="text/javascript" src="/static/js/jquery-1.8.2.min.js"></script>
 	<script type="text/javascript" src="/static/js/jquery.dataTables-1.9.4.min.js"></script>
     <title><%= title %></title>
   </head>
-  <body><%= content %></body>
+  <body>
+	<%= content %>
+<table id="example" class="CSSTableGenerator">
+    <thead>
+        <tr>
+            <th>Node</th>
+            <th>Service</th>
+            <th>Status</th>
+			<th>Msg</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Row 1 Data 1</td>
+            <td>Row 1 Data 2</td>
+            <td>etc</td>
+        </tr>
+        <tr>
+            <td>Row 2 Data 1</td>
+            <td>Row 2 Data 2</td>
+            <td>etc</td>
+        </tr>
+    </tbody>
+</table>
+
+	<script type="text/javascript">
+	$(document).ready(function() {
+    $('#example').dataTable( {
+        "bProcessing": true,
+        "sAjaxSource": '/datatables',
+	    "bPaginate": false,
+        "bLengthChange": false,
+        "bFilter": false,
+        "bSort": false,
+        "bInfo": false,
+        "bAutoWidth": false
+      } );
+     } );
+  </script>
+
+
+  </body>
 </html>
