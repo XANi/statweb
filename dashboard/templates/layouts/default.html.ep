@@ -1,5 +1,11 @@
-<!DOCTYPE html>
-<html>
-  <head><title><%= title %></title></head>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <!-- Grab Google CDN's jQuery. fall back to local if necessary -->
+    <script type="text/javascript" src="/static/js/jquery-1.8.2.min.js"></script>
+	<script type="text/javascript" src="/static/js/jquery.dataTables-1.9.4.min.js"></script>
+    <title><%= title %></title>
+  </head>
   <body><%= content %></body>
 </html>

@@ -13,6 +13,52 @@ sub startup {
 
   # Normal route to controller
   $r->get('/')->to('example#welcome');
+  $r->get('/datatables' => sub {
+	my $self    = shift;
+	my $datatable = {
+		"aaData" => [
+			[
+				"Trident",
+				"Internet Explorer 4.0",
+				"Win 95+",
+				"4",
+				"X"
+			],
+			[
+				"Trident",
+				"Internet Explorer 5.0",
+				"Win 95+",
+				"5",
+				"C"
+			],
+			[
+				"Trident",
+				"Internet Explorer 5.5",
+				"Win 95+",
+				"5.5",
+				"A"
+			],
+			[
+				"Trident",
+				"Internet Explorer 6",
+				"Win 98+",
+				"6",
+				"A"
+			],
+		]
+	};
+
+	$self->respond_to(
+		json => {json => $datatable},
+		xml  => {text => '<hello>world</hello>'},
+		txt  => {text => 'asdsadasd'},
+		html => {text => 'asdasdasdas'},
+	);
+	return "asdasd\n";
+  });
+  $r->get('/test')->to('example#welcome');
 }
 
 1;
+#			$self->content_for(head => '<meta name="author" content="sri" />');
+#			$self->render(template => 'hello', message => 'world')
