@@ -1,7 +1,8 @@
-package Statweb::Listener;
+package Statweb::Backend::Listener;
 use common::sense;
 use Carp qw(cluck croak carp);
 use Data::Dumper;
+use JSON;
 use ZeroMQ qw/:all/;
 
 require Exporter;
@@ -47,7 +48,8 @@ sub listen {
 	my $ctxt = ZeroMQ::Context->new();
 	my $req = $ctxt->socket(ZMQ_SUB);
 	if ( defined( $s->{'config'}{'address'} )) {
-		$req->connect( $s->{'config'}{'address'} ) or die("ZMQ error: $!");
+		print "Connecting to " . $s->{'config'}{'address'} . "\n";
+		$req->connect( $s->{'config'}{'address'} );# or die("ZMQ error: $!");
 	} else {
 		croak("Listen address not defined");
 	}
@@ -55,6 +57,16 @@ sub listen {
 		$req->setsockopt(ZMQ_SUBSCRIBE, $s->{'config'}{'tag'});
 	} else {
 		$req->setsockopt(ZMQ_SUBSCRIBE, '');
+	}
+	while(1)  {
+		my ($tag, $json) = split(/\|/, $req->recv->data,2);
+		my $data;
+		eval {
+			$data = from_json($json);
+		};
+		if (defined($data->{'type'})) {
+			&$sub($data);
+		}
 	}
 };
 1;
