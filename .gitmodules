@@ -1,0 +1,3 @@
+[submodule "ext/datatables"]
+	path = ext/datatables
+	url = git://github.com/DataTables/DataTables.git

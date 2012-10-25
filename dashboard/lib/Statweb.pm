@@ -1,35 +1,18 @@
 package Statweb;
-use Dancer ':syntax';
-use Statweb::RRD;
-use Data::Dumper;
-our $VERSION = '0.1';
+use Mojo::Base 'Mojolicious';
 
-# save pid
-open(PID, '>', config->{'pidfile'});
-print PID $$;
-close(PID);
+# This method will run once at server start
+sub startup {
+  my $self = shift;
 
-# load RRD list
-my $rrddb = Statweb::RRD->new(config->{'rrd_dir'});
+  # Documentation browser under "/perldoc"
+  $self->plugin('PODRenderer');
 
+  # Router
+  my $r = $self->routes;
 
-get '/' => sub {
-    template 'index';
-};
+  # Normal route to controller
+  $r->get('/')->to('example#welcome');
+}
 
-get '/rrd/list' => sub {
-    if (defined($ENV{'HTTP_ACCEPT'}) && $ENV{'HTTP_ACCEPT'} =~ /text\/html/ ) { # if browser wants html give html
-	template 'rrd_list', {rrd_list => $rrddb->get_index()};
-    } else { # rely on Mutable to return either json or xml
-	return $rrddb->get_index();
-    }
-};
-post '/graph/dump' => sub {
-#    if (!defined(params->{'template'} || !defined(params->{'select'}
-#    $rrd->generate_graph_config($graph_template, $graph_params;
-};
-
-get '/:type/:action' => sub {
-    template 'index';
-};
-true;
+1;
