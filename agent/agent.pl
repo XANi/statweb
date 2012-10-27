@@ -110,6 +110,6 @@ sub check_nagios {
 	}
 	chomp($msg);
 	close(CHECK);
-	my $code = $? << 8;
+	my $code = $? >> 8;
 	return ($code, $msg);
 }
