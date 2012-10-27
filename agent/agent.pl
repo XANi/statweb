@@ -10,12 +10,14 @@ use JSON;
 use POSIX;
 use Log::Dispatch;
 use Log::Dispatch::Screen;
-
+use Sys::Hostname;
+use IPC::Open3;
+use List::Util qw(min);
 
 my $tmp = read_file('/etc/statweb/agent.yaml') or croak("Can't load config: $!");
 my $cfg = Load($tmp) or croak("Can't parse config: $!");
 
-
+my $host = hostname;
 
 # set up logging
 
@@ -29,10 +31,19 @@ $log->add(
 	)
 );
 
+# init default vars if not defined
+my $defaults = {
+	default_check_interval => 300,
+	keepalive => 60,
+};
+while ( my ($k, $v) = each(%$defaults) ) {
+	if ( !defined( $cfg->{$k} ) ) {
+		$cfg->{$k} = $v;
+	}
+}
+
+
 $log->debug("Dumping config:\n" . Dump($cfg));
-
-
-
 
 my $ctxt = ZeroMQ::Context->new();
 my $req = $ctxt->socket(ZMQ_PUB);
@@ -40,16 +51,73 @@ $log->info("Binding to ZMQ addr " . $cfg->{'sender'}{'default'}{'config'}{'addre
 $req->bind($cfg->{'sender'}{'default'}{'config'}{'address'});
 
 $log->info("Starting check loop");
+my $next_check_t=0;
+my $next_keepalive=0;
 while(1) {
-		&send({test => 'data'});
-	sleep 1;
+	my $t = scalar time;
+	if($next_check_t > $t) {
+		sleep( $next_check_t - $t );
+		next;
+	}
+	if ($next_keepalive <= $t ) {
+		$log->debug('sending keepalive');
+		&send({
+			type    => 'state',
+			host    => $host,
+			service => 'keepalive',
+			msg     => 'Alive',
+			state   => '0',
+
+		});
+		$next_keepalive = $t + $cfg->{'keepalive'};
+		$next_check_t = $next_keepalive;
+	}
+		while ( my ($check_name, $check) = each(%{ $cfg->{'checks'} } ) ) {
+			if( !defined ( $check->{'interval'} ) ) {
+				$check->{'interval'} = $cfg->{'default_check_interval'} ;
+			}
+			if( !defined ( $check->{'next_check'} ) ) {
+				$check->{'next_check'} = $t;
+			}
+
+			if ( $check->{'next_check'} > $t ) {
+				next;
+			}
+			else {
+				$check->{'next_check'} = $t + $check->{'interval'};
+				$next_check_t = min ( $check->{'next_check'}, $next_check_t );
+			}
+
+			if ( $check->{'type'} eq 'nagios' ) {
+				my $params;
+				$log->debug("Running check $check_name");
+				if (ref( $check->{'params'} ) ne 'ARRAY' ) {
+					my @t = split( /\s+/, $check->{'params'} );
+					$params = \@t;
+				}
+				else {
+					$params = $check->{'params'};
+				}
+				my($code, $msg) = &check_nagios( $check->{'plugin'}, $params );
+
+				&send({
+					type    => 'state',
+					host    => $host,
+					service => $check_name,
+					msg     => $msg,
+					state   => $code,
+				});
+			}
+		}
 }
 
 sub send() {
 	my $data = shift;
 	my $tag = $cfg->{'sender'}{'default'}{'tag'};
 	$log->debug("sending with tag $tag");
+	$log->debug(Dump $data);
 	$req->send($tag . '|' . to_json($data));
+
 }
 
 
@@ -62,4 +130,23 @@ sub _log_helper_timestamp() {
 		$multiline_mark = '.  '
 	}
 	return $out
+}
+
+sub check_nagios {
+	my $plugin = shift;
+	my $plugin_parameters = shift;
+	my $plugin_dir = '/usr/lib/nagios/plugins';
+	if ( ref($plugin_parameters) eq 'ARRAY' ) {
+		open(CHECK, '-|', $plugin_dir . '/' . $plugin, @$plugin_parameters);
+	} else {
+		open(CHECK, '-|', $plugin_dir . '/' . $plugin, $plugin_parameters);
+	}
+	my $msg;
+	while(<CHECK>) {
+		$msg .= $_;
+	}
+	chomp($msg);
+	close(CHECK);
+	my $code = $? >> 8;
+	return ($code, $msg);
 }
