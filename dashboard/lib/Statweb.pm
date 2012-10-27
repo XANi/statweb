@@ -1,5 +1,10 @@
 package Statweb;
 use Mojo::Base 'Mojolicious';
+use DBI;
+
+
+my $db = '/tmp/statweb_state.sqlite';
+my $dbh = DBI->connect("dbi:SQLite:dbname=$db","","",{RaiseError => 1});
 
 # This method will run once at server start
 sub startup {
@@ -15,39 +20,13 @@ sub startup {
   $r->get('/')->to('example#welcome');
   $r->get('/datatables' => sub {
 	my $self    = shift;
-	my $datatable = {
-		"aaData" => [
-			[
-				"Trident",
-				"Internet Explorer 4.0",
-				"Win 95+",
-				"4",
-				"X"
-			],
-			[
-				"Trident",
-				"Internet Explorer 5.0",
-				"Win 95+",
-				"5",
-				"C"
-			],
-			[
-				"Trident",
-				"Internet Explorer 5.5",
-				"Win 95+",
-				"5.5",
-				"A"
-			],
-			[
-				"Trident",
-				"Internet Explorer 6",
-				"Win 98+",
-				"6",
-				"A"
-			],
-		]
-	};
-
+	my $sth = $dbh->prepare('SELECT * FROM status');
+	$sth->execute;
+	my $datatable = { aaData => [] };
+	while ( $r = $sth->fetchrow_hashref() ) {
+		my @t = [ $r->{'ts'}, $r->{'host'}, $r->{'service'}, $r->{'state'}, $r->{'msg'} ];
+		push ( @{ $datatable->{'aaData'} }, @t);
+	}
 	$self->respond_to(
 		json => {json => $datatable},
 		xml  => {json => $datatable},

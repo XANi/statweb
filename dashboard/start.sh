@@ -1,2 +1,2 @@
 #!/bin/bash
-morbo script/statweb
+morbo bin/statweb
