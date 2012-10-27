@@ -1,0 +1,6 @@
+#+TITLE: Statweb
+#+AUTHOR: XANi
+* What is it ?
+  Just a little research project about monitoring, ZeroMQ and events
+* What does it do ?
+  Short term goal is to make a little monitoring tool for my bunch of machines, long term one, who knows, we will see ;]
