@@ -12,6 +12,7 @@ use Log::Dispatch;
 use Log::Dispatch::Screen;
 use Sys::Hostname;
 use IPC::Open3;
+use List::Util qw(min);
 
 my $tmp = read_file('/etc/statweb/agent.yaml') or croak("Can't load config: $!");
 my $cfg = Load($tmp) or croak("Can't parse config: $!");
@@ -30,10 +31,19 @@ $log->add(
 	)
 );
 
+# init default vars if not defined
+my $defaults = {
+	default_check_interval => 300,
+	keepalive => 60,
+};
+while ( my ($k, $v) = each(%$defaults) ) {
+	if ( !defined( $cfg->{$k} ) ) {
+		$cfg->{$k} = $v;
+	}
+}
+
+
 $log->debug("Dumping config:\n" . Dump($cfg));
-
-
-
 
 my $ctxt = ZeroMQ::Context->new();
 my $req = $ctxt->socket(ZMQ_PUB);
@@ -41,7 +51,16 @@ $log->info("Binding to ZMQ addr " . $cfg->{'sender'}{'default'}{'config'}{'addre
 $req->bind($cfg->{'sender'}{'default'}{'config'}{'address'});
 
 $log->info("Starting check loop");
+my $next_check_t=0;
+my $next_keepalive=0;
 while(1) {
+	my $t = scalar time;
+	if($next_check_t > $t) {
+		sleep( $next_check_t - $t );
+		next;
+	}
+	if ($next_keepalive <= $t ) {
+		$log->debug('sending keepalive');
 		&send({
 			type    => 'state',
 			host    => $host,
@@ -50,28 +69,46 @@ while(1) {
 			state   => '0',
 
 		});
-		while ( my ($check, $check_config) = each(%{ $cfg->{'checks'} } ) ) {
-			if ( $check_config->{'type'} eq 'nagios' ) {
+		$next_keepalive = $t + $cfg->{'keepalive'};
+		$next_check_t = $next_keepalive;
+	}
+		while ( my ($check_name, $check) = each(%{ $cfg->{'checks'} } ) ) {
+			if( !defined ( $check->{'interval'} ) ) {
+				$check->{'interval'} = $cfg->{'default_check_interval'} ;
+			}
+			if( !defined ( $check->{'next_check'} ) ) {
+				$check->{'next_check'} = $t;
+			}
+
+			if ( $check->{'next_check'} > $t ) {
+				next;
+			}
+			else {
+				$check->{'next_check'} = $t + $check->{'interval'};
+				$next_check_t = min ( $check->{'next_check'}, $next_check_t );
+			}
+
+			if ( $check->{'type'} eq 'nagios' ) {
 				my $params;
-				if (ref( $check_config->{'params'} ) ne 'ARRAY' ) {
-					my @t = split( /\s+/, $check_config->{'params'} );
+				$log->debug("Running check $check_name");
+				if (ref( $check->{'params'} ) ne 'ARRAY' ) {
+					my @t = split( /\s+/, $check->{'params'} );
 					$params = \@t;
 				}
 				else {
-					$params = $check_config->{'params'};
+					$params = $check->{'params'};
 				}
-				my($code, $msg) = &check_nagios( $check_config->{'plugin'}, $params );
+				my($code, $msg) = &check_nagios( $check->{'plugin'}, $params );
 
 				&send({
 					type    => 'state',
 					host    => $host,
-					service => $check,
+					service => $check_name,
 					msg     => $msg,
 					state   => $code,
 				});
 			}
 		}
-	sleep 1;
 }
 
 sub send() {
