@@ -35,6 +35,7 @@ $log->add(
 my $defaults = {
 	default_check_interval => 300,
 	keepalive => 60,
+	randomize => 0,
 };
 while ( my ($k, $v) = each(%$defaults) ) {
 	if ( !defined( $cfg->{$k} ) ) {
@@ -69,7 +70,7 @@ while(1) {
 			state   => '0',
 
 		});
-		$next_keepalive = $t + $cfg->{'keepalive'};
+		$next_keepalive = $t + $cfg->{'keepalive'} + rand($cfg->{'randomize'});;
 		$next_check_t = $next_keepalive;
 	}
 		while ( my ($check_name, $check) = each(%{ $cfg->{'checks'} } ) ) {
@@ -84,7 +85,7 @@ while(1) {
 				next;
 			}
 			else {
-				$check->{'next_check'} = $t + $check->{'interval'};
+				$check->{'next_check'} = $t + $check->{'interval'} + rand($cfg->{'randomize'});;
 				$next_check_t = min ( $check->{'next_check'}, $next_check_t );
 			}
 
