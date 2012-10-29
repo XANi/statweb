@@ -14,6 +14,9 @@ use Sys::Hostname;
 use IPC::Open3;
 use List::Util qw(min max);
 
+use EV;
+use AnyEvent;
+
 my $tmp = read_file('/etc/statweb/agent.yaml') or croak("Can't load config: $!");
 my $cfg = Load($tmp) or croak("Can't parse config: $!");
 
@@ -36,6 +39,7 @@ my $defaults = {
 	default_check_interval => 300,
 	keepalive => 60,
 	randomize => 0,
+	random_start => 1,
 };
 while ( my ($k, $v) = each(%$defaults) ) {
 	if ( !defined( $cfg->{$k} ) ) {
@@ -54,55 +58,33 @@ $req->bind($cfg->{'sender'}{'default'}{'config'}{'address'});
 $log->info("Starting check loop");
 my $next_check_t=0;
 my $next_keepalive=0;
-while(1) {
-	my $t = scalar time;
-	if($next_check_t > $t) {
-		my $sleep_time = max($next_check_t - $t, 1);
-		$log->debug("Sleeping $sleep_time time before next check");
-		sleep($sleep_time);
-		next;
+my $event;
+my $finish = AnyEvent->condvar;
+while ( my ($check_name, $check) = each(%{ $cfg->{'checks'} } ) ) {
+	if( !defined ( $check->{'interval'} ) ) {
+		$check->{'interval'} = $cfg->{'default_check_interval'} ;
 	}
-	if ($next_keepalive <= $t ) {
-		$log->debug('sending keepalive');
-		&send({
-			type    => 'state',
-			host    => $host,
-			service => 'keepalive',
-			msg     => 'Alive',
-			state   => '0',
-
-		});
-		$next_keepalive = $t + $cfg->{'keepalive'} + rand($cfg->{'randomize'});;
-		$next_check_t = $next_keepalive;
-	}
-		while ( my ($check_name, $check) = each(%{ $cfg->{'checks'} } ) ) {
-			if( !defined ( $check->{'interval'} ) ) {
-				$check->{'interval'} = $cfg->{'default_check_interval'} ;
-			}
-			if( !defined ( $check->{'next_check'} ) ) {
-				$check->{'next_check'} = $t;
-			}
-
-			if ( $check->{'next_check'} > $t ) {
-				next;
-			}
-			else {
-				$check->{'next_check'} = $t + $check->{'interval'} + rand($cfg->{'randomize'});;
-				$next_check_t = min ( $check->{'next_check'}, $next_check_t );
-			}
-
-			if ( $check->{'type'} eq 'nagios' ) {
-				my $params;
-				$log->debug("Running check $check_name");
-				if (ref( $check->{'params'} ) ne 'ARRAY' ) {
-					my @t = split( /\s+/, $check->{'params'} );
+	if ( $check->{'type'} eq 'nagios' ) {
+		my $params;
+		if (ref( $check->{'params'} ) ne 'ARRAY' ) {
+			my @t = split( /\s+/, $check->{'params'} );
 					$params = \@t;
-				}
-				else {
-					$params = $check->{'params'};
-				}
+		}
+		else {
+			$params = $check->{'params'};
+		}
+		my $check_interval = $check->{'interval'};
+		if ($cfg->{'randomize'} > 0) {
+			my $randomize_percent = $check->{'interval'} * ( $cfg->{'randomize'} / 100 );
+			$check_interval +=  ( $randomize_percent / 2 ) - rand($randomize_percent);
+			$check_interval = max(1, $check_interval);
+		}
+		$log->debug("Scheduling check $check_name with time $check_interval starting in " . $cfg->{'random_start'} .'s');
+		$event->{$check_name} = AnyEvent->timer(
+			after => rand($cfg->{'random_start'}),
+			interval => $check_interval,
+			cb => sub {
 				my($code, $msg) = &check_nagios( $check->{'plugin'}, $params );
-
 				&send({
 					type    => 'state',
 					host    => $host,
@@ -110,9 +92,13 @@ while(1) {
 					msg     => $msg,
 					state   => $code,
 				});
-			}
-		}
+			},
+		);
+	}
 }
+# wait till something tells us to exit
+$finish->recv;
+
 
 sub send() {
 	my $data = shift;
