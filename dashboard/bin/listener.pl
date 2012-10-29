@@ -14,7 +14,7 @@ if ( ! -e $db) {
 }
 my $dbh = DBI->connect("dbi:SQLite:dbname=$db","","",{RaiseError => 1});
 my $zmq=Statweb::Backend::Listener->new(
-	address => 'epgm://br0;239.3.2.1:5555',
+	address => "epgm://$ARGV[0];239.3.2.1:5555",
 );
 
 # TODO pack it into submodule
