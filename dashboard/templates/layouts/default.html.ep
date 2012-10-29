@@ -67,7 +67,14 @@ $(document).ready(function() {
 });
 
 
+      var events = new EventSource('http://cthulhu:3000/ws');
+
+      // Subscribe to "msg" event
+      events.addEventListener('msg', function(event) {
+        document.body.innerHTML += event.data + '<br/>';
+      }, false);
+
   </script>
 
-  </body>
+</body>
 </html>

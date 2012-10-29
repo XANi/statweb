@@ -1,11 +1,18 @@
 package Statweb;
 use Mojo::Base 'Mojolicious';
 use DBI;
-
+use EV;
+use AnyEvent;
 
 my $db = '/tmp/statweb_state.sqlite';
 my $dbh = DBI->connect("dbi:SQLite:dbname=$db","","",{RaiseError => 1});
 
+
+#my $w = AnyEvent->timer (
+#	after => 0.5, interval => 1, cb => sub {
+#		warn "timeout\n";
+#	};
+#);
 # This method will run once at server start
 sub startup {
   my $self = shift;
@@ -19,7 +26,7 @@ sub startup {
   # Normal route to controller
   $r->get('/')->to('example#welcome');
   $r->get('/datatables' => sub {
-	my $self    = shift;
+	my $s    = shift;
 	my $sth = $dbh->prepare('SELECT * FROM status');
 	$sth->execute;
 	my $datatable = { aaData => [] };
@@ -28,7 +35,7 @@ sub startup {
 		push ( @{ $datatable->{'aaData'} }, @t);
 	}
 
-	$self->respond_to(
+	$s->respond_to(
 		json => {json => $datatable},
 		xml  => {json => $datatable},
 		txt  => {json => $datatable},
@@ -38,6 +45,20 @@ sub startup {
 	return "asdasd\n";
   });
   $r->get('/test')->to('example#welcome');
+  $r->websocket('/ws' => sub {
+      my $s = shift;
+	  $s->on(message => sub {
+					my ($self, $msg) = @_;
+					$s->send("echo: $msg");
+	  });
+#	  $s->res->headers->content_type('text/event-stream');
+#	  my $a = 0;
+#	  while($a < 5) {
+#		  sleep 1;
+#		  ++$a;
+#		  $s->write("event:msg\ndata: test\n\n");
+#	  }
+  });
 
 }
 sub db_cleanup {
