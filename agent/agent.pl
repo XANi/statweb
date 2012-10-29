@@ -57,7 +57,9 @@ my $next_keepalive=0;
 while(1) {
 	my $t = scalar time;
 	if($next_check_t > $t) {
-		sleep( $next_check_t - $t );
+		my $sleep_time = $next_check_t - $t;
+		$log->debug("Sleeping $sleep_time time before next check");
+		sleep($sleep_time);
 		next;
 	}
 	if ($next_keepalive <= $t ) {
