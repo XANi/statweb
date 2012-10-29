@@ -27,18 +27,24 @@ sub startup {
 		my @t = [ $r->{'ts'}, $r->{'host'}, $r->{'service'}, $r->{'state'}, $r->{'msg'} ];
 		push ( @{ $datatable->{'aaData'} }, @t);
 	}
+
 	$self->respond_to(
 		json => {json => $datatable},
 		xml  => {json => $datatable},
 		txt  => {json => $datatable},
 		html => {json => $datatable},
 	);
+	&db_cleanup;
 	return "asdasd\n";
   });
   $r->get('/test')->to('example#welcome');
 
 }
-
+sub db_cleanup {
+	# cast have to be here else sqlite thinks its text and fails at compare
+	my $sth = $dbh->prepare("UPDATE status SET state = -1 WHERE ( ts + ttl ) < CAST( ? AS INT)");
+	$sth->execute(scalar time);
+}
 1;
 #			$self->content_for(head => '<meta name="author" content="sri" />');
 #			$self->render(template => 'hello', message => 'world')
