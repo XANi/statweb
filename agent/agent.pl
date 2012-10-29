@@ -12,7 +12,7 @@ use Log::Dispatch;
 use Log::Dispatch::Screen;
 use Sys::Hostname;
 use IPC::Open3;
-use List::Util qw(min);
+use List::Util qw(min max);
 
 my $tmp = read_file('/etc/statweb/agent.yaml') or croak("Can't load config: $!");
 my $cfg = Load($tmp) or croak("Can't parse config: $!");
@@ -57,7 +57,7 @@ my $next_keepalive=0;
 while(1) {
 	my $t = scalar time;
 	if($next_check_t > $t) {
-		my $sleep_time = $next_check_t - $t;
+		my $sleep_time = max($next_check_t - $t, 1);
 		$log->debug("Sleeping $sleep_time time before next check");
 		sleep($sleep_time);
 		next;
