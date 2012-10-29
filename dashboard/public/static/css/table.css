@@ -27,3 +27,19 @@ tr:nth-child(odd)    {
 tr:nth-child(even)    {
 	background-color:#eeeeff;
 }
+
+.check_state_0 {
+	background-color:#00ff00;
+}
+
+.check_state_1 {
+	background-color:#ffff00;
+}
+
+.check_state_2 {
+	background-color:#00ff00;
+}
+
+.check_state_-1 {
+	background-color:#aaaaff;
+}
