@@ -17,6 +17,8 @@ my $zmq=Statweb::Backend::Listener->new(
 	address => "epgm://$ARGV[0];239.3.2.1:5555",
 );
 
+my $default_ttl=600;
+
 # TODO pack it into submodule
 my $log = Log::Dispatch->new();
 $log->add(
@@ -37,27 +39,11 @@ $zmq->listen(
 		++$var;
 		my $data = shift;
 		if ( defined ( $data->{'type'} ) && $data->{'type'} eq 'state' ) {
-			my $sth = $dbh->prepare('UPDATE status SET state = ?, msg = ?, ts = ? WHERE host = ? AND service = ?');
-			my $count = $sth->execute(
-				$data->{'state'},
-				$data->{'msg'},
-				scalar time,
-				$data->{'host'},
-				$data->{'service'},
-			);
-			if ($count < 1) {
-				$log->debug("Inserting:\n" . Dump($data) );
-				my $sth = $dbh->prepare('INSERT INTO status (ts, host, service, state, msg) VALUES (?, ?, ?, ?, ?)');
-				$sth->execute(
-					scalar time,
-					$data->{'host'},
-					$data->{'service'},
-					$data->{'state'},
-					$data->{'msg'},
-				);
-			} else {
-				$log->debug("Updating:\n" . Dump($data) );
+			if (! defined($data->{'ttl'}) ) {
+				$data->{'ttl'} = $default_ttl;
 			}
+			&insert_or_update_state($data);
+			&keepalive($data);
 		}
 	}
 );
@@ -82,6 +68,44 @@ CREATE TABLE status (
     host    TEXT,
     service TEXT,
     state   NUMERIC,
+    ttl     NUMERIC,
     msg     TEXT
 )');
 }
+
+sub insert_or_update_state {
+	my $data = shift;
+	my $sth = $dbh->prepare('UPDATE status SET state = ?, msg = ?, ts = ?, ttl = ? WHERE host = ? AND service = ?');
+	my $count = $sth->execute(
+		$data->{'state'},
+		$data->{'msg'},
+		scalar time,
+		$data->{'ttl'},
+		$data->{'host'},
+		$data->{'service'},
+	);
+	if ($count < 1) {
+		$log->debug("Inserting:\n" . Dump($data) );
+		my $sth = $dbh->prepare('INSERT INTO status (ts, host, service, state, msg, ttl) VALUES (?, ?, ?, ?, ?, ?)');
+		$sth->execute(
+			scalar time,
+			$data->{'host'},
+			$data->{'service'},
+			$data->{'state'},
+			$data->{'msg'},
+			$data->{'ttl'},
+		);
+	}
+	else {
+		$log->debug("Updating:\n" . Dump($data) );
+	}
+}
+
+sub keepalive {
+	my $data = shift;
+	$data->{'state'} = 0;
+	$data->{'msg'} = 'Keepalive based on '. $data->{'service'};
+	$data->{'service'} = 'keepalive';
+	&insert_or_update_state($data);
+}
+
