@@ -14,9 +14,9 @@
 <table id="example" class="CSSTableGenerator">
     <thead>
         <tr>
-            <th>time</th>
+            <th class=time>time</th>
             <th>Host</th>
-            <th>Service</th>
+            <th class=service>Service</th>
 			<th>Status</th>
 			<th>Msg</th>
         </tr>
@@ -52,6 +52,8 @@ $(document).ready(function() {
                 } );
             },
        "fnRowCallback": function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
+           $('td:eq(0)', nRow).html( Math.round((new Date()).getTime() / 1000) - aData[0] + "s ago");
+           $('td:eq(0)', nRow).addClass('time');
            $('td:eq(1)', nRow).addClass('check_state_' + aData[3]);
            $('td:eq(2)', nRow).addClass('check_state_' + aData[3]);
            $('td:eq(3)', nRow).addClass('check_state_' + aData[3]);

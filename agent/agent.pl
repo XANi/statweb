@@ -2,7 +2,6 @@
 
 use common::sense;
 use Carp qw{ croak carp confess cluck};
-
 use ZeroMQ qw/:all/;
 use File::Slurp;
 use YAML;

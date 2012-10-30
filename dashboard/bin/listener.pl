@@ -75,7 +75,7 @@ CREATE TABLE status (
 
 sub insert_or_update_state {
 	my $data = shift;
-	my $sth = $dbh->prepare('UPDATE status SET state = ?, msg = ?, ts = ?, ttl = ? WHERE host = ? AND service = ?');
+	my $sth = $dbh->prepare('UPDATE status SET state = ?, msg = ?, ts = ?, ttl = ? WHERE host = ? AND service = ? ORDER BY ts DESC LIMIT 1');
 	my $count = $sth->execute(
 		$data->{'state'},
 		$data->{'msg'},
@@ -97,7 +97,7 @@ sub insert_or_update_state {
 		);
 	}
 	else {
-		$log->debug("Updating:\n" . Dump($data) );
+		$log->debug("Updating $count rows with:\n" . Dump($data) );
 	}
 }
 
