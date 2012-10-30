@@ -1,0 +1,2 @@
+#!/bin/bash
+perl -I ./dashboard/lib dashboard/bin/listener.pl $@

@@ -1,0 +1,30 @@
+---
+# add % variance to check time, will not go below 1s
+randomize: 8
+# wait up to X seconds after start before running first check
+random_start: 5
+default_check_interval: 300
+
+sender:
+  default:
+    type: zmq
+    config:
+      address: epgm://eth0;239.3.2.1:5555
+    tag: statweb-agent
+
+checks:
+  http-localhost:
+    type:  nagios
+    plugin: check_http
+    params: -I 127.0.0.1
+    interval: 3
+
+# params can also be specified as array
+  http-localhost-alt:
+    type:  nagios
+    plugin: check_http
+    params:
+      - -H
+      - 127.0.0.1
+      - -u
+      - /is_it_working

@@ -2,7 +2,6 @@
 
 use common::sense;
 use Carp qw{ croak carp confess cluck};
-
 use ZeroMQ qw/:all/;
 use File::Slurp;
 use YAML;
@@ -10,12 +9,17 @@ use JSON;
 use POSIX;
 use Log::Dispatch;
 use Log::Dispatch::Screen;
+use Sys::Hostname;
+use IPC::Open3;
+use List::Util qw(min max);
 
+use EV;
+use AnyEvent;
 
 my $tmp = read_file('/etc/statweb/agent.yaml') or croak("Can't load config: $!");
 my $cfg = Load($tmp) or croak("Can't parse config: $!");
 
-
+my $host = hostname;
 
 # set up logging
 
@@ -29,10 +33,21 @@ $log->add(
 	)
 );
 
+# init default vars if not defined
+my $defaults = {
+	default_check_interval => 300,
+	keepalive => 60,
+	randomize => 0,
+	random_start => 1,
+};
+while ( my ($k, $v) = each(%$defaults) ) {
+	if ( !defined( $cfg->{$k} ) ) {
+		$cfg->{$k} = $v;
+	}
+}
+
+
 $log->debug("Dumping config:\n" . Dump($cfg));
-
-
-
 
 my $ctxt = ZeroMQ::Context->new();
 my $req = $ctxt->socket(ZMQ_PUB);
@@ -40,16 +55,57 @@ $log->info("Binding to ZMQ addr " . $cfg->{'sender'}{'default'}{'config'}{'addre
 $req->bind($cfg->{'sender'}{'default'}{'config'}{'address'});
 
 $log->info("Starting check loop");
-while(1) {
-		&send({test => 'data'});
-	sleep 1;
+my $next_check_t=0;
+my $next_keepalive=0;
+my $event;
+my $finish = AnyEvent->condvar;
+while ( my ($check_name, $check) = each(%{ $cfg->{'checks'} } ) ) {
+	if( !defined ( $check->{'interval'} ) ) {
+		$check->{'interval'} = $cfg->{'default_check_interval'} ;
+	}
+	if ( $check->{'type'} eq 'nagios' ) {
+		my $params;
+		if (ref( $check->{'params'} ) ne 'ARRAY' ) {
+			my @t = split( /\s+/, $check->{'params'} );
+					$params = \@t;
+		}
+		else {
+			$params = $check->{'params'};
+		}
+		my $check_interval = $check->{'interval'};
+		if ($cfg->{'randomize'} > 0) {
+			my $randomize_percent = $check->{'interval'} * ( $cfg->{'randomize'} / 100 );
+			$check_interval +=  ( $randomize_percent / 2 ) - rand($randomize_percent);
+			$check_interval = max(1, $check_interval);
+		}
+		$log->debug("Scheduling check $check_name with time $check_interval starting in " . $cfg->{'random_start'} .'s');
+		$event->{$check_name} = AnyEvent->timer(
+			after => rand($cfg->{'random_start'}),
+			interval => $check_interval,
+			cb => sub {
+				my($code, $msg) = &check_nagios( $check->{'plugin'}, $params );
+				&send({
+					type    => 'state',
+					host    => $host,
+					service => $check_name,
+					msg     => $msg,
+					state   => $code,
+				});
+			},
+		);
+	}
 }
+# wait till something tells us to exit
+$finish->recv;
+
 
 sub send() {
 	my $data = shift;
 	my $tag = $cfg->{'sender'}{'default'}{'tag'};
 	$log->debug("sending with tag $tag");
+	$log->debug(Dump $data);
 	$req->send($tag . '|' . to_json($data));
+
 }
 
 
@@ -62,4 +118,23 @@ sub _log_helper_timestamp() {
 		$multiline_mark = '.  '
 	}
 	return $out
+}
+
+sub check_nagios {
+	my $plugin = shift;
+	my $plugin_parameters = shift;
+	my $plugin_dir = '/usr/lib/nagios/plugins';
+	if ( ref($plugin_parameters) eq 'ARRAY' ) {
+		open(CHECK, '-|', $plugin_dir . '/' . $plugin, @$plugin_parameters);
+	} else {
+		open(CHECK, '-|', $plugin_dir . '/' . $plugin, $plugin_parameters);
+	}
+	my $msg;
+	while(<CHECK>) {
+		$msg .= $_;
+	}
+	chomp($msg);
+	close(CHECK);
+	my $code = $? >> 8;
+	return ($code, $msg);
 }

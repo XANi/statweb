@@ -1,0 +1,66 @@
+table {
+    border-collapse:collapse;
+	width:90%;
+}
+
+
+
+
+table, th, td {
+    border: 1px solid black;
+}
+
+td {
+	border: 1px solid black;
+	text-align: left;
+}
+
+th  {
+    border: 1px solid black;
+	height:30px;
+}
+
+tr:nth-child(odd)    {
+	background-color:#ddddff;
+}
+
+tr:nth-child(even)    {
+	background-color:#eeeeff;
+}
+
+td.check_state_0 {
+	background-color:#00ff00;
+}
+
+td.check_state_1 {
+	background-color:#ffff00;
+}
+
+td.check_state_2 {
+	font-weight:      bold;
+	background-color: #ff7700;
+}
+
+td.check_state_-1 {
+	background-color:#aaaaff;
+}
+
+td.check_state_-2 {
+	background-color:#ffaaff;
+}
+
+td.time {
+	text-align: right;
+}
+
+th.time {
+	width: 70px;
+}
+
+th.host {
+	width: 100px;
+}
+
+th.service {
+	width: 120px;
+}

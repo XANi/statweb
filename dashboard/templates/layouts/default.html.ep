@@ -1,5 +1,75 @@
-<!DOCTYPE html>
-<html>
-  <head><title><%= title %></title></head>
-  <body><%= content %></body>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <!-- Grab Google CDN's jQuery. fall back to local if necessary -->
+    <link rel="stylesheet" href="/static/css/table.css" />
+    <script type="text/javascript" src="/static/js/jquery-1.8.2.min.js"></script>
+	<script type="text/javascript" src="/static/js/jquery.dataTables-1.9.4.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.dataTables.fnReloadAjax.js"></script>
+	<title><%= title %></title>
+  </head>
+  <body>
+	<%= content %>
+<table id="example" class="CSSTableGenerator">
+    <thead>
+        <tr>
+            <th class=time>time</th>
+            <th class=host>Host</th>
+            <th class=service>Service</th>
+			<th>Status</th>
+			<th>Msg</th>
+        </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+</table>
+<form>
+  <input type="button" id="btnSubmit" name="btnSubmit" value="Refresh">
+</form>
+
+<script type="text/javascript">
+$(document).ready(function() {
+    var oTable = $('#example').dataTable( {
+        "bProcessing": true,
+        "sAjaxSource": '/datatables',
+	    "bPaginate": false,
+        "bLengthChange": false,
+        "bFilter": true,
+        "bSort": true,
+        "aaSorting": [[ 1, "asc" ],[ 2 , "asc"]],
+        "bInfo": false,
+        "bAutoWidth": false,
+        "bServerSide": false,
+	    "fnServerData": function ( sSource, aoData, fnCallback ) {
+                $.ajax( {
+                    "dataType": 'json',
+                    "type": "GET",
+                    "url": sSource,
+                    "data": 'txtId=' + $("txtId").val(),
+                    "success": fnCallback
+                } );
+            },
+       "fnRowCallback": function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
+           $('td:eq(0)', nRow).html( Math.round((new Date()).getTime() / 1000) - aData[0] + "s ago");
+           $('td:eq(0)', nRow).addClass('time');
+           $('td:eq(1)', nRow).addClass('check_state_' + aData[3]);
+           $('td:eq(2)', nRow).addClass('check_state_' + aData[3]);
+           $('td:eq(3)', nRow).addClass('check_state_' + aData[3]);
+    }
+      } );
+    $("#btnSubmit").click(function(){
+        oTable.fnReloadAjax();
+    });
+    setInterval(function() {
+          // Do something every 2 seconds
+        oTable.fnReloadAjax();
+    }, 2000);
+});
+
+
+  </script>
+
+  </body>
 </html>
