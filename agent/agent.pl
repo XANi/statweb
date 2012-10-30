@@ -87,6 +87,9 @@ while ( my ($check_name, $check) = each(%{ $cfg->{'checks'} } ) ) {
 			interval => $check_interval,
 			cb => sub {
 				my($code, $msg) = &check_nagios( $check->{'plugin'}, $params );
+				if (defined($check->{'strip_perfdata'}) && $check->{'strip_perfdata'} ) {
+				    ($msg) = split(/\|/,$msg,2);
+				}
 				&send({
 					type    => 'state',
 					host    => $host,
