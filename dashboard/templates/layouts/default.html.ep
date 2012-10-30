@@ -31,6 +31,12 @@
 
 <script type="text/javascript">
 $(document).ready(function() {
+    var status = new Object();
+    status[0] = 'OK';
+    status[1] = 'WARNING';
+    status[2] = 'CRITICAL';
+    status[-1] = 'UNKNOWN';
+    status[-2] = 'UNK-OLD';
     var oTable = $('#example').dataTable( {
         "bProcessing": true,
         "sAjaxSource": '/datatables',
@@ -57,6 +63,10 @@ $(document).ready(function() {
            $('td:eq(1)', nRow).addClass('check_state_' + aData[3]);
            $('td:eq(2)', nRow).addClass('check_state_' + aData[3]);
            $('td:eq(3)', nRow).addClass('check_state_' + aData[3]);
+           if (status[aData[3]] != undefined ) {
+               $('td:eq(3)', nRow).html(status[aData[3]]);
+           }
+
 
     }
       } );
