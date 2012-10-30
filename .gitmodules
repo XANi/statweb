@@ -1,3 +1,6 @@
 [submodule "ext/datatables"]
 	path = ext/datatables
 	url = git://github.com/DataTables/DataTables.git
+[submodule "wiki"]
+	path = wiki
+	url = git@github.com:XANi/statweb.wiki.git

@@ -60,12 +60,16 @@ sub startup {
 #	  }
   });
 
-}
+};
 sub db_cleanup {
 	# cast have to be here else sqlite thinks its text and fails at compare
 	my $sth = $dbh->prepare("UPDATE status SET state = -1 WHERE ( ts + ttl ) < CAST( ? AS INT)");
 	$sth->execute(scalar time);
-}
+	$sth = $dbh->prepare("UPDATE status SET state = -2 WHERE ( ts + 3600 ) < CAST( ? AS INT)");
+	$sth->execute(scalar time);
+	$sth = $dbh->prepare("DELETE FROM status WHERE ( ts + 86400 ) < CAST( ? AS INT )");
+	$sth->execute(scalar time);
+};
 1;
 #			$self->content_for(head => '<meta name="author" content="sri" />');
 #			$self->render(template => 'hello', message => 'world')
