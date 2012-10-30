@@ -20,7 +20,7 @@ my $tmp = read_file('/etc/statweb/agent.yaml') or croak("Can't load config: $!")
 my $cfg = Load($tmp) or croak("Can't parse config: $!");
 
 my $host = hostname;
-
+$0 = 'Statweb: agent';
 # set up logging
 
 #   # Send all logs to Log::Dispatch

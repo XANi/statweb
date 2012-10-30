@@ -5,7 +5,7 @@ use DBI;
 
 my $db = '/tmp/statweb_state.sqlite';
 my $dbh = DBI->connect("dbi:SQLite:dbname=$db","","",{RaiseError => 1});
-
+$0 = 'Statweb: dashboard';
 # This method will run once at server start
 sub startup {
   my $self = shift;

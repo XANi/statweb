@@ -57,6 +57,7 @@ $(document).ready(function() {
            $('td:eq(1)', nRow).addClass('check_state_' + aData[3]);
            $('td:eq(2)', nRow).addClass('check_state_' + aData[3]);
            $('td:eq(3)', nRow).addClass('check_state_' + aData[3]);
+
     }
       } );
     $("#btnSubmit").click(function(){

@@ -8,6 +8,7 @@ use Log::Dispatch::Screen;
 use DBI;
 use POSIX;
 my $db = '/tmp/statweb_state.sqlite';
+$0 = 'Statweb: listener';
 my $create_db=0;
 if ( ! -e $db) {
 	$create_db=1;
