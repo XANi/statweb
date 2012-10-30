@@ -63,6 +63,9 @@ while ( my ($check_name, $check) = each(%{ $cfg->{'checks'} } ) ) {
 	if( !defined ( $check->{'interval'} ) ) {
 		$check->{'interval'} = $cfg->{'default_check_interval'} ;
 	}
+	if( !defined ( $check->{'ttl'} ) ) {
+		$check->{'ttl'} = $check->{'interval'} * 3.1;
+	}
 	if ( $check->{'type'} eq 'nagios' ) {
 		my $params;
 		if (ref( $check->{'params'} ) ne 'ARRAY' ) {
@@ -90,6 +93,7 @@ while ( my ($check_name, $check) = each(%{ $cfg->{'checks'} } ) ) {
 					service => $check_name,
 					msg     => $msg,
 					state   => $code,
+					ttl     => $check->{'ttl'},
 				});
 			},
 		);
