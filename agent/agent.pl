@@ -23,6 +23,12 @@ my $host = hostname;
 $0 = 'Statweb: agent';
 # set up logging
 
+if ( defined($cfg->{'pid'}) ) {
+	open(PID, '>', $cfg->{'pid'});
+	print PID $$;
+	close(PID);
+}
+
 #   # Send all logs to Log::Dispatch
 my $log = Log::Dispatch->new();
 $log->add(

@@ -3,7 +3,7 @@ class statweb::agent {
                libcommon-sense-perl,
                libzeromq-perl,
                libfile-slurp-perl,
-               libyaml-perl,
+               libyaml-libyaml-perl,
                liblog-dispatch-perl,
                libev-perl,
                libanyevent-perl,

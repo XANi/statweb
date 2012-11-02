@@ -8,17 +8,23 @@ use Log::Dispatch::Screen;
 use File::Slurp;
 use DBI;
 use POSIX;
-use YAML;
-my $db = '/tmp/statweb_state.sqlite';
+use YAML::XS;
+
 $0 = 'Statweb: listener';
-my $create_db=0;
-if ( ! -e $db) {
-	$create_db=1;
-}
+
 
 
 my $tmp = read_file('/etc/statweb/listener.yaml') or croak("Can't load config: $!");
 my $cfg = Load($tmp) or croak("Can't parse config: $!");
+my $create_db=0;
+if ( ! -e $cfg->{'db'}) {
+	$create_db=1;
+}
+if ( defined($cfg->{'pid'}) ) {
+	open(PID, '>', $cfg->{'pid'});
+	print PID $$;
+	close(PID);
+}
 
 my $dbh = DBI->connect("dbi:SQLite:dbname=" . $cfg->{'db'},"","",{RaiseError => 1});
 

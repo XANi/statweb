@@ -80,7 +80,7 @@ $(document).ready(function() {
     setInterval(function() {
           // Do something every 2 seconds
         oTable.fnReloadAjax();
-    }, 2000);
+    }, 60000);
 });
 
 
