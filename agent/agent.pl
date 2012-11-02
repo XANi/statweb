@@ -66,6 +66,13 @@ while ( my ($check_name, $check) = each(%{ $cfg->{'checks'} } ) ) {
 	if( !defined ( $check->{'ttl'} ) ) {
 		$check->{'ttl'} = $check->{'interval'} * 3.1;
 	}
+	my $check_interval = $check->{'interval'};
+
+	if ($cfg->{'randomize'} > 0) {
+		my $randomize_percent = $check->{'interval'} * ( $cfg->{'randomize'} / 100 );
+		$check_interval +=  ( $randomize_percent / 2 ) - rand($randomize_percent);
+		$check_interval = max(1, $check_interval);
+	}
 	if ( $check->{'type'} eq 'nagios' ) {
 		my $params;
 		if (ref( $check->{'params'} ) ne 'ARRAY' ) {
@@ -75,12 +82,7 @@ while ( my ($check_name, $check) = each(%{ $cfg->{'checks'} } ) ) {
 		else {
 			$params = $check->{'params'};
 		}
-		my $check_interval = $check->{'interval'};
-		if ($cfg->{'randomize'} > 0) {
-			my $randomize_percent = $check->{'interval'} * ( $cfg->{'randomize'} / 100 );
-			$check_interval +=  ( $randomize_percent / 2 ) - rand($randomize_percent);
-			$check_interval = max(1, $check_interval);
-		}
+
 		$log->debug("Scheduling check $check_name with time $check_interval starting in " . $cfg->{'random_start'} .'s');
 		$event->{$check_name} = AnyEvent->timer(
 			after => rand($cfg->{'random_start'}),
@@ -101,7 +103,25 @@ while ( my ($check_name, $check) = each(%{ $cfg->{'checks'} } ) ) {
 			},
 		);
 	}
+	elsif ( $check->{'type'} eq 'dummy' ) {
+				$log->debug("Scheduling dummy check $check_name with time $check_interval starting in " . $cfg->{'random_start'} .'s');
+		$event->{$check_name} = AnyEvent->timer(
+			after => rand($cfg->{'random_start'}),
+			interval => $check_interval,
+			cb => sub {
+				my ($code, $msg) = &check_dummy($check_name, $check);
+				&send({
+					type    => 'state',
+					host    => $host,
+					service => $check_name,
+					msg     => $msg,
+					state   => $code,
+					ttl     => $check->{'ttl'},
+				});
+			},)
+	}
 }
+
 # wait till something tells us to exit
 $finish->recv;
 
@@ -144,4 +164,23 @@ sub check_nagios {
 	close(CHECK);
 	my $code = $? >> 8;
 	return ($code, $msg);
+}
+
+sub check_dummy {
+	my $plugin = shift;
+	my $params = shift;
+	my $state = 0;
+	if ( !defined( $params->{'warn'} ) ) {
+		$params->{'warn'} = 0;
+	}
+	if ( !defined( $params->{'crit'} ) ) {
+		$params->{'warn'} = 0;
+	}
+	my $roll = rand(100);
+	if($roll < ( $params->{'crit'} ) ) {
+		$state = 2;
+	} elsif ($roll < ( $params->{'crit'} + $params->{'warn'} ) ) {
+		$state = 1;
+	}
+	return ($state, 'Dummy check with ' . $params->{'warn'} . '% warn, ' . $params->{'crit'} . '% crit'. '[ roll: ' . $roll . ' ]');
 }
