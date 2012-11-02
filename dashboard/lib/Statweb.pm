@@ -24,7 +24,7 @@ sub startup {
 	$sth->execute;
 	my $datatable = { aaData => [] };
 	while ( $r = $sth->fetchrow_hashref() ) {
-		my @t = [ $r->{'ts'}, $r->{'host'}, $r->{'service'}, $r->{'state'}, $r->{'msg'} ];
+		my @t = [ $r->{'ts'}, $r->{'host'}, $r->{'service'}, $r->{'state'}, $r->{'last_state_change'}, $r->{'msg'} ];
 		push ( @{ $datatable->{'aaData'} }, @t);
 	}
 

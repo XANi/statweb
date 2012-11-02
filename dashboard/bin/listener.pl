@@ -34,6 +34,7 @@ if ( $create_db ) {
 	$log->warn("creating DB");
 	&create_db;
 }
+my $sql = &prepare_sql($dbh);
 my $var;
 $zmq->listen(
 	sub {
@@ -70,25 +71,61 @@ CREATE TABLE status (
     service TEXT,
     state   NUMERIC,
     ttl     NUMERIC,
-    msg     TEXT
-)');
+    msg     TEXT,
+    last_state   NUMERIC,
+    last_state_change NUMERIC
+);');
+
+	$sth = $dbh->do('
+CREATE TRIGGER update_state AFTER UPDATE ON status BEGIN
+  UPDATE status SET
+    last_state_change = NEW.ts,
+    last_state = OLD.state
+  WHERE
+    status.host = NEW.host
+    AND status.service = NEW.service
+    AND OLD.state != NEW.state;
+END;');
+	$sth = $dbh->do('
+CREATE TRIGGER insert_update_state AFTER INSERT ON status BEGIN
+  UPDATE status SET
+    last_state_change = NEW.ts,
+    last_state = NEW.state
+  WHERE
+    status.host = NEW.host
+    AND status.service = NEW.service;
+END;') or die;
+
 }
 
 sub insert_or_update_state {
 	my $data = shift;
-	my $sth = $dbh->prepare('UPDATE status SET state = ?, msg = ?, ts = ?, ttl = ? WHERE host = ? AND service = ? ORDER BY ts DESC LIMIT 1');
-	my $count = $sth->execute(
-		$data->{'state'},
-		$data->{'msg'},
-		scalar time,
-		$data->{'ttl'},
+	$sql->{'get_status'}->execute (
 		$data->{'host'},
 		$data->{'service'},
 	);
-	if ($count < 1) {
+	my $r = $sql->{'get_status'}->fetchrow_hashref();
+	$log->debug("Current\n" . Dump($r));
+	if( defined ($r) ) {
+		if( $r->{'state'} != $data->{'state'} ) {
+			$log->debug("State changed from \n" . Dump($r));
+		}
+		$log->debug("Updating with:\n" . Dump($data) );
+		$sql->{'update_status'}->execute(
+			$data->{'state'},
+			$data->{'msg'},
+			scalar time,
+			$data->{'ttl'},
+			$data->{'host'},
+			$data->{'service'},
+		);
+		if(!$dbh->{'AutoCommit'}) {
+			$dbh->commit;
+		}
+	}
+	else {
 		$log->debug("Inserting:\n" . Dump($data) );
-		my $sth = $dbh->prepare('INSERT INTO status (ts, host, service, state, msg, ttl) VALUES (?, ?, ?, ?, ?, ?)');
-		$sth->execute(
+		$sql->{'insert_status'}->execute(
 			scalar time,
 			$data->{'host'},
 			$data->{'service'},
@@ -96,12 +133,22 @@ sub insert_or_update_state {
 			$data->{'msg'},
 			$data->{'ttl'},
 		);
-	}
-	else {
-		$log->debug("Updating $count rows with:\n" . Dump($data) );
+#		$sql->{'update_prev_state'}->execute(
+#			$data->{'host'},
+#			$data->{'service'},
+#		);
 	}
 }
 
+sub prepare_sql {
+	my $dbh = shift;
+	my $sql;
+	$sql->{'get_status'} = $dbh->prepare('SELECT * FROM status WHERE host = ? AND service = ? ORDER BY ts DESC LIMIT 1');
+	$sql->{'update_status'} = $dbh->prepare('UPDATE status SET state = ?, msg = ?, ts = ?, ttl = ? WHERE host = ? AND service = ? ORDER BY ts DESC LIMIT 1');
+	$sql->{'update_prev_state'} = $dbh->prepare('UPDATE status SET last_state = state, last_state_change = ts WHERE host = ? AND service = ? ORDER BY ts DESC LIMIT 1');
+	$sql->{'insert_status'} = $dbh->prepare('INSERT INTO status (ts, host, service, state, msg, ttl) VALUES (?, ?, ?, ?, ?, ?)');
+	return $sql;
+}
 sub keepalive {
 	my $data = shift;
 	$data->{'state'} = 0;

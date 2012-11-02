@@ -53,6 +53,10 @@ td.time {
 	text-align: right;
 }
 
+td.duration {
+	text-align: right;
+}
+
 th.time {
 	width: 70px;
 }
