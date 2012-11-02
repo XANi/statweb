@@ -95,7 +95,31 @@ CREATE TRIGGER insert_update_state AFTER INSERT ON status BEGIN
     status.host = NEW.host
     AND status.service = NEW.service;
 END;') or die;
-
+	$sth = $dbh->do('
+CREATE TABLE status_log (
+    ts           NUMERIC,
+    host         TEXT,
+    service      TEXT,
+    ttl          NUMERIC,
+    old_state    NUMERIC,
+    new_state    NUMERIC,
+    old_duration NUMERIC
+);') or die;
+	$sth = $dbh->do('
+CREATE TRIGGER archivize AFTER UPDATE ON status
+  FOR EACH ROW WHEN OLD.state != NEW.state
+  BEGIN
+  INSERT INTO status_log (ts, host, service, ttl, old_state, new_state, old_duration)
+  VALUES(
+    NEW.ts,
+    NEW.host,
+    NEW.service,
+    OLD.ttl,
+    OLD.state,
+    NEW.state,
+    NEW.ts - OLD.last_state_change
+  );
+END;') or die;
 }
 
 sub insert_or_update_state {

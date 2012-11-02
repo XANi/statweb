@@ -8,11 +8,11 @@
 	seconds -= minutes * 60;
     var out = seconds + 's';
     if (days > 0) {
-		 out = days + 'd' + hours + 'h' + minutes + 'm' + seconds + 's'
+		 out = days + 'd ' + hours + 'h ' + minutes + 'm ' + seconds + 's'
 	} else if (hours > 0) {
-		 out =  hours + 'h' + minutes + 'm' + seconds + 's'
+		 out =  hours + 'h ' + minutes + 'm ' + seconds + 's'
     } else if (minutes > 0) {
-		 out = minutes + 'm' + seconds + 's'
+		 out = minutes + 'm ' + seconds + 's'
 	}
 	return out
  }

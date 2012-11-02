@@ -15,7 +15,7 @@
 <table id="example" class="CSSTableGenerator">
     <thead>
         <tr>
-            <th class=time>time</th>
+            <th class=time>last</th>
             <th class=host>Host</th>
             <th class=service>Service</th>
 			<th class=status>Status</th>
