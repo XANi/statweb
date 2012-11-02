@@ -5,17 +5,25 @@ use Statweb::Backend::Listener;
 use YAML;
 use Log::Dispatch;
 use Log::Dispatch::Screen;
+use File::Slurp;
 use DBI;
 use POSIX;
+use YAML;
 my $db = '/tmp/statweb_state.sqlite';
 $0 = 'Statweb: listener';
 my $create_db=0;
 if ( ! -e $db) {
 	$create_db=1;
 }
-my $dbh = DBI->connect("dbi:SQLite:dbname=$db","","",{RaiseError => 1});
+
+
+my $tmp = read_file('/etc/statweb/listener.yaml') or croak("Can't load config: $!");
+my $cfg = Load($tmp) or croak("Can't parse config: $!");
+
+my $dbh = DBI->connect("dbi:SQLite:dbname=" . $cfg->{'db'},"","",{RaiseError => 1});
+
 my $zmq=Statweb::Backend::Listener->new(
-	address => "epgm://$ARGV[0];239.3.2.1:5555",
+	address => $cfg->{'listener'}{'default'}{'address'}
 );
 
 my $default_ttl=600;
@@ -103,13 +111,14 @@ CREATE TABLE status_log (
     ttl          NUMERIC,
     old_state    NUMERIC,
     new_state    NUMERIC,
-    old_duration NUMERIC
+    old_duration NUMERIC,
+    msg TEXT
 );') or die;
 	$sth = $dbh->do('
 CREATE TRIGGER archivize AFTER UPDATE ON status
   FOR EACH ROW WHEN OLD.state != NEW.state
   BEGIN
-  INSERT INTO status_log (ts, host, service, ttl, old_state, new_state, old_duration)
+  INSERT INTO status_log (ts, host, service, ttl, old_state, new_state, old_duration, msg)
   VALUES(
     NEW.ts,
     NEW.host,
@@ -117,7 +126,8 @@ CREATE TRIGGER archivize AFTER UPDATE ON status
     OLD.ttl,
     OLD.state,
     NEW.state,
-    NEW.ts - OLD.last_state_change
+    NEW.ts - OLD.last_state_change,
+    OLD.msg
   );
 END;') or die;
 }

@@ -1,10 +1,13 @@
 package Statweb;
 use Mojo::Base 'Mojolicious';
+use File::Slurp;
 use DBI;
+use YAML;
 
+my $tmp = read_file('/etc/statweb/listener.yaml') or croak("Can't load config: $!");
+my $cfg = Load($tmp) or croak("Can't parse config: $!");
+my $dbh = DBI->connect("dbi:SQLite:dbname=" . $cfg->{'db'},"","",{RaiseError => 1});
 
-my $db = '/tmp/statweb_state.sqlite';
-my $dbh = DBI->connect("dbi:SQLite:dbname=$db","","",{RaiseError => 1});
 $0 = 'Statweb: dashboard';
 # This method will run once at server start
 sub startup {
