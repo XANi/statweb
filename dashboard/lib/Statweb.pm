@@ -3,6 +3,7 @@ use Mojo::Base 'Mojolicious';
 use File::Slurp;
 use DBI;
 use YAML;
+use Data::Dumper;
 
 my $tmp = read_file('/etc/statweb/dashboard.yaml') or croak("Can't load config: $!");
 my $cfg = Load($tmp) or croak("Can't parse config: $!");
@@ -32,8 +33,8 @@ sub startup {
 	my $sth = $dbh->prepare('SELECT * FROM status');
 	$sth->execute;
 	my $datatable = { aaData => [] };
-	while ( $r = $sth->fetchrow_hashref() ) {
-		my @t = [ $r->{'ts'}, $r->{'host'}, $r->{'service'}, $r->{'state'}, $r->{'last_state_change'}, $r->{'msg'} ];
+	while ( my $row = $sth->fetchrow_hashref() ) {
+		my @t = [ $row->{'ts'}, $row->{'host'}, $row->{'service'}, $row->{'state'}, $row->{'last_state_change'}, $row->{'msg'} ];
 		push ( @{ $datatable->{'aaData'} }, @t);
 	}
 
@@ -47,7 +48,26 @@ sub startup {
 	return "asdasd\n";
   });
   $r->get('/test')->to('example#welcome');
+  $r->get('/host/:host' => sub {
+			  my $self = shift;
+			  my $datatable = {aaData => [] };
+			   my $sth = $dbh->prepare('SELECT * FROM status_log WHERE host = ?');
+			   $sth->execute($self->param('host'));
+			   while ( my $row = $sth->fetchrow_hashref() ) {
+			   	  my @t = [ $row->{'ts'}, $row->{'host'}, $row->{'service'}, $row->{'old_state'}, $row->{'new_state'}, $row->{'duration'}, $row->{'msg'} ];
+			   	  push ( @{ $datatable->{'aaData'} }, @t);
+			  }
+			  $self->stash(
+				  host => $self->param('host'),
+			  );
+			  $self->respond_to(
+				  json => {json => $datatable},
+				  xml  => {json => $datatable},
+				  txt  => {template => 'layouts/host'},
+				  html => {template => 'layouts/host'},
+			  );
 
+		  });
 };
 sub db_cleanup {
 	# cast have to be here else sqlite thinks its text and fails at compare

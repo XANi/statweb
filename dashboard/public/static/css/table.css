@@ -51,6 +51,7 @@ td.check_state_-2 {
 
 td.time {
 	text-align: right;
+	width: 90px;
 }
 
 td.duration {
@@ -58,7 +59,7 @@ td.duration {
 }
 
 th.time {
-	width: 70px;
+	width: 90px;
 }
 
 th.host {

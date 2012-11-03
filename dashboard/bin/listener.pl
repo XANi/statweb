@@ -117,14 +117,14 @@ CREATE TABLE status_log (
     ttl          NUMERIC,
     old_state    NUMERIC,
     new_state    NUMERIC,
-    old_duration NUMERIC,
+    duration NUMERIC,
     msg TEXT
 );') or die;
 	$sth = $dbh->do('
 CREATE TRIGGER archivize AFTER UPDATE ON status
   FOR EACH ROW WHEN OLD.state != NEW.state
   BEGIN
-  INSERT INTO status_log (ts, host, service, ttl, old_state, new_state, old_duration, msg)
+  INSERT INTO status_log (ts, host, service, ttl, old_state, new_state, duration, msg)
   VALUES(
     NEW.ts,
     NEW.host,

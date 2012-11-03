@@ -12,6 +12,8 @@
   </head>
   <body>
 	<%= content %>
+	<h1><%= $host %> </h1>
+<input type="button" id="btnSubmit" name="refreshStatus" value="Refresh">
 <table id="status">
     <thead>
         <tr>
@@ -27,9 +29,24 @@
 
     </tbody>
 </table>
-<form>
-  <input type="button" id="btnSubmit" name="btnSubmit" value="Refresh">
-</form>
+<h3>History</h3>
+  <input type="button" id="btnSubmit" name="refreshHistory" value="Refresh">
+<table id="history">
+    <thead>
+        <tr>
+            <th class=time>time</th>
+            <th class=host>Host</th>
+            <th class=service>Service</th>
+			<th class=status>Old</th>
+			<th class=status>New</th>
+			<th class=status>Duration</th>
+			<th class=msg>Msg</th>
+        </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+</table>
 
 <script type="text/javascript">
 $(document).ready(function() {
@@ -59,7 +76,7 @@ $(document).ready(function() {
                     "success": fnCallback
                 } );
             },
-       "fnRowCallback": function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
+      "fnRowCallback": function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
            $('td:eq(0)', nRow).html( time_diff( Math.round((new Date()).getTime() / 1000), aData[0]));
            $('td:eq(0)', nRow).addClass('time');
            $('td:eq(1)', nRow).addClass('check_state_' + aData[3]);
@@ -70,33 +87,56 @@ $(document).ready(function() {
            if (status[aData[3]] != undefined ) {
                $('td:eq(3)', nRow).html(status[aData[3]]);
            }
+        }
+     });
 
 
-    }
-      } );
+
     var historyTable = $('#history').dataTable( {
         "bProcessing": true,
-        "sAjaxSource": '/host/<%= host %>',
+        "sAjaxSource": '/host/<%= $host %>',
 	    "bPaginate": false,
         "bLengthChange": false,
         "bFilter": true,
         "bSort": true,
-        "aaSorting": [[3, "desc"],[ 1, "asc" ],[ 2 , "asc"]],
+        "aaSorting": [[0, "desc"],[ 1, "asc" ],[ 2 , "asc"]],
         "bInfo": false,
         "bAutoWidth": false,
         "bServerSide": false,
 	    "fnServerData": function ( sSource, aoData, fnCallback ) {
                 $.ajax( {
+                    headers: {
+                        Accept : "application/json",
+                    },
                     "dataType": 'json',
                     "type": "GET",
                     "url": sSource,
-                    "data": 'txtId=' + $("txtId").val(),
+                    //"data": 'txtId=' + $("txtId").val(),
                     "success": fnCallback
                 } );
             },
+         "fnRowCallback": function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
+             $('td:eq(0)', nRow).html( time_diff( Math.round((new Date()).getTime() / 1000), aData[0]));
+             $('td:eq(0)', nRow).addClass('time');
+             $('td:eq(1)', nRow).addClass('check_state_' + aData[3]);
+             $('td:eq(2)', nRow).addClass('check_state_' + aData[3]);
+             $('td:eq(3)', nRow).addClass('check_state_' + aData[3]);
+             $('td:eq(4)', nRow).addClass('duration');
+             $('td:eq(5)', nRow).html( time_diff(aData[5], 0));
+             if (status[aData[3]] != undefined ) {
+                 $('td:eq(3)', nRow).html(status[aData[3]]);
+             }
+             if (status[aData[4]] != undefined ) {
+                 $('td:eq(4)', nRow).html(status[aData[3]]);
+             }
+           }
     });
-    $("#btnSubmit").click(function(){
+
+    $("#refreshStatus").click(function(){
         statusTable.fnReloadAjax();
+    });
+    $("#refreshHistory").click(function(){
+        historyTable.fnReloadAjax();
     });
     setInterval(function() {
           // Do something every 2 seconds
