@@ -5,22 +5,22 @@
     <!-- Grab Google CDN's jQuery. fall back to local if necessary -->
     <link rel="stylesheet" href="/static/css/table.css" />
     <script type="text/javascript" src="/static/js/jquery-1.8.2.min.js"></script>
-	<script type="text/javascript" src="/static/js/jquery.dataTables-1.9.4.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.dataTables-1.9.4.min.js"></script>
     <script type="text/javascript" src="/static/js/jquery.dataTables.fnReloadAjax.js"></script>
-	<script type="text/javascript" src="/static/js/lib.js"></script>
-	<title><%= title %></title>
+    <script type="text/javascript" src="/static/js/lib.js"></script>
+    <title><%= title %></title>
   </head>
   <body>
-	<%= content %>
+    <%= content %>
 <table id="status">
     <thead>
         <tr>
             <th class=time>last</th>
             <th class=host>Host</th>
             <th class=service>Service</th>
-			<th class=status>Status</th>
-			<th class=duration>Duration</th>
-			<th class=msg>Msg</th>
+            <th class=status>Status</th>
+            <th class=duration>Duration</th>
+            <th class=msg>Msg</th>
         </tr>
     </thead>
     <tbody>
@@ -42,7 +42,7 @@ $(document).ready(function() {
     var statusTable = $('#status').dataTable( {
         "bProcessing": true,
         "sAjaxSource": '/datatables',
-	    "bPaginate": false,
+        "bPaginate": false,
         "bLengthChange": false,
         "bFilter": true,
         "bSort": true,
@@ -50,7 +50,7 @@ $(document).ready(function() {
         "bInfo": false,
         "bAutoWidth": false,
         "bServerSide": false,
-	    "fnServerData": function ( sSource, aoData, fnCallback ) {
+        "fnServerData": function ( sSource, aoData, fnCallback ) {
                 $.ajax( {
                     "dataType": 'json',
                     "type": "GET",
@@ -77,7 +77,7 @@ $(document).ready(function() {
     var historyTable = $('#history').dataTable( {
         "bProcessing": true,
         "sAjaxSource": '/host/<%= host %>',
-	    "bPaginate": false,
+        "bPaginate": false,
         "bLengthChange": false,
         "bFilter": true,
         "bSort": true,
@@ -85,7 +85,7 @@ $(document).ready(function() {
         "bInfo": false,
         "bAutoWidth": false,
         "bServerSide": false,
-	    "fnServerData": function ( sSource, aoData, fnCallback ) {
+        "fnServerData": function ( sSource, aoData, fnCallback ) {
                 $.ajax( {
                     "dataType": 'json',
                     "type": "GET",

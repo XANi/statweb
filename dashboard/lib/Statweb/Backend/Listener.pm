@@ -36,38 +36,38 @@ sub new {
     my $class = ref($proto) || $proto;
     my $self = {};
     bless($self, $class);
-	my %config = @_;
-	$self->{'config'} = \%config;
-	return $self;
+    my %config = @_;
+    $self->{'config'} = \%config;
+    return $self;
 };
 
 sub listen {
-	my $s = shift;
-	my $sub = shift;
+    my $s = shift;
+    my $sub = shift;
 
-	my $ctxt = ZeroMQ::Context->new();
-	my $req = $ctxt->socket(ZMQ_SUB);
-	if ( defined( $s->{'config'}{'address'} )) {
-		print "Connecting to " . $s->{'config'}{'address'} . "\n";
-		$req->connect( $s->{'config'}{'address'} );# or die("ZMQ error: $!");
-	} else {
-		croak("Listen address not defined");
-	}
-	if( defined( $s->{'config'}{'tag'} ) ) {
-		$req->setsockopt(ZMQ_SUBSCRIBE, $s->{'config'}{'tag'});
-	} else {
-		$req->setsockopt(ZMQ_SUBSCRIBE, '');
-	}
-	while(1)  {
-		my ($tag, $json) = split(/\|/, $req->recv->data,2);
-		my $data;
-		eval {
-			$data = from_json($json);
-		};
-		if (defined($data->{'type'})) {
-			&$sub($data);
-		}
-	}
+    my $ctxt = ZeroMQ::Context->new();
+    my $req = $ctxt->socket(ZMQ_SUB);
+    if ( defined( $s->{'config'}{'address'} )) {
+        print "Connecting to " . $s->{'config'}{'address'} . "\n";
+        $req->connect( $s->{'config'}{'address'} );# or die("ZMQ error: $!");
+    } else {
+        croak("Listen address not defined");
+    }
+    if( defined( $s->{'config'}{'tag'} ) ) {
+        $req->setsockopt(ZMQ_SUBSCRIBE, $s->{'config'}{'tag'});
+    } else {
+        $req->setsockopt(ZMQ_SUBSCRIBE, '');
+    }
+    while(1)  {
+        my ($tag, $json) = split(/\|/, $req->recv->data,2);
+        my $data;
+        eval {
+            $data = from_json($json);
+        };
+        if (defined($data->{'type'})) {
+            &$sub($data);
+        }
+    }
 };
 1;
 

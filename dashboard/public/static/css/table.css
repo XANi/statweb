@@ -1,6 +1,6 @@
 table {
     border-collapse:collapse;
-	width:90%;
+    width:90%;
 }
 
 
@@ -11,61 +11,61 @@ table, th, td {
 }
 
 td {
-	border: 1px solid black;
-	text-align: left;
+    border: 1px solid black;
+    text-align: left;
 }
 
 th  {
     border: 1px solid black;
-	height:30px;
+    height:30px;
 }
 
 tr:nth-child(odd)    {
-	background-color:#ddddff;
+    background-color:#ddddff;
 }
 
 tr:nth-child(even)    {
-	background-color:#eeeeff;
+    background-color:#eeeeff;
 }
 
 td.check_state_0 {
-	background-color:#00ff00;
+    background-color:#00ff00;
 }
 
 td.check_state_1 {
-	background-color:#ffff00;
+    background-color:#ffff00;
 }
 
 td.check_state_2 {
-	font-weight:      bold;
-	background-color: #ff7700;
+    font-weight:      bold;
+    background-color: #ff7700;
 }
 
 td.check_state_-1 {
-	background-color:#aaaaff;
+    background-color:#aaaaff;
 }
 
 td.check_state_-2 {
-	background-color:#ffaaff;
+    background-color:#ffaaff;
 }
 
 td.time {
-	text-align: right;
-	width: 90px;
+    text-align: right;
+    width: 90px;
 }
 
 td.duration {
-	text-align: right;
+    text-align: right;
 }
 
 th.time {
-	width: 90px;
+    width: 90px;
 }
 
 th.host {
-	width: 100px;
+    width: 100px;
 }
 
 th.service {
-	width: 120px;
+    width: 120px;
 }
