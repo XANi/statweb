@@ -13,7 +13,8 @@
   <body>
     <%= content %>
     <h1><%= $host %> </h1>
-<%= $self->render('dashboard',partial => 1); %>
+    <a href='/'> back </a>
+<%= $self->render('host_status',partial => 1); %>
 <h3>History</h3>
 <%= $self->render('host_history',partial => 1); %>
   </body>

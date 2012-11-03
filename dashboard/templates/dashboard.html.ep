@@ -38,6 +38,9 @@ $(document).ready(function() {
         "bServerSide": false,
         "fnServerData": function ( sSource, aoData, fnCallback ) {
                 $.ajax( {
+                    headers: {
+                        Accept : "application/json",
+                    },
                     "dataType": 'json',
                     "type": "GET",
                     "url": sSource,

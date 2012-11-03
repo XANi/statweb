@@ -28,7 +28,7 @@ $(document).ready(function() {
     status[-2] = 'UNK-OLD';
     var historyTable = $('#history').dataTable( {
         "bProcessing": true,
-        "sAjaxSource": '/host/<%= $host %>',
+        "sAjaxSource": '/history/host/<%= $host %>',
         "bPaginate": false,
         "bLengthChange": false,
         "bFilter": true,
