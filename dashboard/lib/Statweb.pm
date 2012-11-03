@@ -48,7 +48,7 @@ sub startup {
     return "asdasd\n";
   });
   $r->get('/test')->to('example#welcome');
-  $r->get('/host/:host' => sub {
+  $r->get('/host/*host' => sub {
               my $self = shift;
               my $datatable = {aaData => [] };
                my $sth = $dbh->prepare('SELECT * FROM status_log WHERE host = ?');
@@ -67,7 +67,8 @@ sub startup {
                   html => {template => 'layouts/host'},
               );
 
-          });
+          },
+      );
 };
 sub db_cleanup {
     # cast have to be here else sqlite thinks its text and fails at compare

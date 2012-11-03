@@ -56,6 +56,11 @@ td.time {
 
 td.duration {
     text-align: right;
+    width: 90px;
+}
+
+th.duration {
+    width: 90px;
 }
 
 th.time {
@@ -68,4 +73,12 @@ th.host {
 
 th.service {
     width: 120px;
+}
+
+th.status {
+    width: 80px;
+}
+
+td.status {
+    width: 80px;
 }
