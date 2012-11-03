@@ -12,7 +12,7 @@
   </head>
   <body>
     <%= content %>
-<table id="status">
+<table id="example" class="CSSTableGenerator">
     <thead>
         <tr>
             <th class=time>last</th>
@@ -39,7 +39,7 @@ $(document).ready(function() {
     status[2] = 'CRITICAL';
     status[-1] = 'UNKNOWN';
     status[-2] = 'UNK-OLD';
-    var statusTable = $('#status').dataTable( {
+    var oTable = $('#example').dataTable( {
         "bProcessing": true,
         "sAjaxSource": '/datatables',
         "bPaginate": false,
@@ -74,33 +74,12 @@ $(document).ready(function() {
 
     }
       } );
-    var historyTable = $('#history').dataTable( {
-        "bProcessing": true,
-        "sAjaxSource": '/host/<%= host %>',
-        "bPaginate": false,
-        "bLengthChange": false,
-        "bFilter": true,
-        "bSort": true,
-        "aaSorting": [[3, "desc"],[ 1, "asc" ],[ 2 , "asc"]],
-        "bInfo": false,
-        "bAutoWidth": false,
-        "bServerSide": false,
-        "fnServerData": function ( sSource, aoData, fnCallback ) {
-                $.ajax( {
-                    "dataType": 'json',
-                    "type": "GET",
-                    "url": sSource,
-                    "data": 'txtId=' + $("txtId").val(),
-                    "success": fnCallback
-                } );
-            },
-    });
     $("#btnSubmit").click(function(){
-        statusTable.fnReloadAjax();
+        oTable.fnReloadAjax();
     });
     setInterval(function() {
           // Do something every 2 seconds
-        statusTable.fnReloadAjax();
+        oTable.fnReloadAjax();
     }, 60000);
 });
 
