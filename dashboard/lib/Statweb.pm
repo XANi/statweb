@@ -87,6 +87,26 @@ sub startup {
           );
       }
   );
+  $r->get('/stats/*host/*service' =>
+      sub  {
+          my $self = shift;
+          my $sth = $dbh->prepare('
+              select old_state as state, sum(duration) as duration from status_log
+              where
+                  host = ?
+                  and service = ?
+                  and ts < ?
+              group by old_state'
+          );
+          $sth->execute($self->param('host'),$self->param('service'), scalar time - (86400 * 7));
+          my $stats = $sth->fetchrow_hashref();
+          $self->respond_to(
+              json => {json => $stats},
+              xml  => {json => $stats},
+              txt  => {template => 'layouts/host'},
+              html => {template => 'layouts/host'},
+          );
+      });
 };
 
 sub db_cleanup {
@@ -98,6 +118,7 @@ sub db_cleanup {
     $sth = $dbh->prepare("DELETE FROM status WHERE ( ts + 86400 ) < CAST( ? AS INT )");
     $sth->execute(scalar time);
 };
+
 1;
 #           $self->content_for(head => '<meta name="author" content="sri" />');
 #           $self->render(template => 'hello', message => 'world')

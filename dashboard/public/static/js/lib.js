@@ -1,5 +1,8 @@
 function time_diff(d1, d2) {
     var seconds = d1 - d2;
+    if (seconds < 0) {
+	seconds = 0;
+    }
     var days = Math.floor(seconds / 86400);
     seconds -= days * 86400;
     var hours = Math.floor(seconds / 3600);

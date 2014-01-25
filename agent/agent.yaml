@@ -3,7 +3,7 @@ sender:
   default:
     type: zmq
     config:
-      address: epgm://br0;239.3.2.1:5555
+      address: epgm://br0;239.3.2.1:55555
     tag: statweb-agent
 checks:
   http-localhost:

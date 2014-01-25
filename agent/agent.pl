@@ -70,7 +70,7 @@ while ( my ($check_name, $check) = each(%{ $cfg->{'checks'} } ) ) {
         $check->{'interval'} = $cfg->{'default_check_interval'} ;
     }
     if( !defined ( $check->{'ttl'} ) ) {
-        $check->{'ttl'} = $check->{'interval'} * 3.1;
+        $check->{'ttl'} = $check->{'interval'} * 4.1;
     }
     my $check_interval = $check->{'interval'};
 

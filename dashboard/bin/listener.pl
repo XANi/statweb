@@ -13,6 +13,13 @@ use YAML::XS;
 $0 = 'Statweb: listener';
 
 
+my $states = [
+	      'OK',
+	      'WARNING',
+              'CRITICAL',
+              'UNKNOWN',
+];
+
 
 my $tmp = read_file('/etc/statweb/listener.yaml') or croak("Can't load config: $!");
 my $cfg = Load($tmp) or croak("Can't parse config: $!");
@@ -149,6 +156,7 @@ sub insert_or_update_state {
     if( defined ($r) ) {
         if( $r->{'state'} != $data->{'state'} ) {
             $log->debug("State changed from \n" . Dump($r));
+	    &send_state_change($r,$data);
         }
         $log->debug("Updating with:\n" . Dump($data) );
         $sql->{'update_status'}->execute(
@@ -195,5 +203,20 @@ sub keepalive {
     $data->{'msg'} = 'Keepalive based on '. $data->{'service'};
     $data->{'service'} = 'keepalive';
     &insert_or_update_state($data);
+}
+
+sub send_state_change {
+    my $old = shift;
+    my $new = shift;
+    open(LOG, '>>','/tmp/listener.log');
+    print LOG scalar localtime(time());
+    my $msg = " Changed state of " . $new->{'service'} . '@' . $new->{'host'}
+      . " from "
+      . $states->[ $old->{'state'} ] . ' to ' 
+      . $states->[ $new->{'state'} ] . ' msg: ' . $new->{'msg'};
+    print LOG $msg;
+    print LOG "\n";
+    system('/usr/local/bin/pushover.pl','--sound','pianobar',$msg);
+    close(LOG);
 }
 
