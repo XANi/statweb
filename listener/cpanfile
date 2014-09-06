@@ -1,3 +1,8 @@
 requires 'ZeroMQ';
 requires 'JSON';
 requires 'common::sense';
+requires 'Moo';
+requires 'AnyEvent::STOMP::Client';
+requires 'Log::Any';
+requires 'JSON::XS';
+requires 'Crypt::Mac::HMAC';

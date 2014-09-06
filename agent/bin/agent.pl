@@ -1,6 +1,8 @@
 #!/usr/bin/perl
 
 use common::sense;
+use FindBin;
+use lib "$FindBin::Bin/../lib";
 use Carp qw{ croak carp confess cluck};
 use ZeroMQ qw/:all/;
 use File::Slurp;
@@ -15,6 +17,8 @@ use List::Util qw(min max);
 
 use EV;
 use AnyEvent;
+use Statweb::Agent::Transport::STOMP;
+
 
 my $config_files = [
     'cfg/config.yaml',
@@ -63,8 +67,13 @@ while ( my ($k, $v) = each(%$defaults) ) {
     }
 }
 
-
 $log->debug("Dumping config:\n" . Dump($cfg));
+
+my $stomp;
+if (defined( $cfg->{'sender'}{'stomp'} )) {
+    $stomp = Statweb::Agent::Transport::STOMP->new($cfg->{'sender'}{'stomp'});
+};
+
 
 my $ctxt = ZeroMQ::Context->new();
 my $req = $ctxt->socket(ZMQ_PUB);
@@ -146,6 +155,9 @@ $finish->recv;
 sub send() {
     my $data = shift;
     my $tag = $cfg->{'sender'}{'default'}{'tag'};
+    if (defined($stomp)) {
+        $stomp->send($data);
+    }
     $log->debug("sending with tag $tag");
     $log->debug(Dump $data);
     $req->send($tag . '|' . to_json($data));
