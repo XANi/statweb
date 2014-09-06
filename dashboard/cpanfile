@@ -1,5 +1,5 @@
 
 
-requires 'Mojolicious';
+requires 'Mojolicious', ">= 5.30";
 requires 'DBI';
 requires 'YAML';
