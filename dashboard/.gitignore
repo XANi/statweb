@@ -1,0 +1,3 @@
+dashboard/log/*
+dashboard/tmp/*
+dashboard/cfg/config.yaml

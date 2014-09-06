@@ -1,0 +1,77 @@
+<table id="status">
+    <thead>
+        <tr>
+            <th class=time>last</th>
+            <th class=host>Host</th>
+            <th class=service>Service</th>
+            <th class=status>Status</th>
+            <th class=duration>Duration</th>
+            <th class=msg>Msg</th>
+        </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+</table>
+<form>
+  <input type="button" id="refreshStatus" name="btnSubmit" value="Refresh">
+</form>
+
+<script type="text/javascript">
+$(document).ready(function() {
+    var status = new Object();
+    status[0] = 'OK';
+    status[1] = 'WARNING';
+    status[2] = 'CRITICAL';
+    status[-1] = 'UNKNOWN';
+    status[-2] = 'UNK-OLD';
+    var statusTable = $('#status').dataTable( {
+        "bProcessing": true,
+        "sAjaxSource": '/host/<%= $host %>',
+        "bPaginate": false,
+        "bLengthChange": false,
+        "bFilter": true,
+        "bSort": true,
+        "aaSorting": [[3, "desc"],[ 1, "asc" ],[ 2 , "asc"]],
+        "bInfo": false,
+        "bAutoWidth": false,
+        "bServerSide": false,
+        "fnServerData": function ( sSource, aoData, fnCallback ) {
+                $.ajax( {
+                    headers: {
+                        Accept : "application/json",
+                    },
+                    "dataType": 'json',
+                    "type": "GET",
+                    "url": sSource,
+                    "data": 'txtId=' + $("txtId").val(),
+                    "success": fnCallback
+                } );
+            },
+       "fnRowCallback": function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
+           $('td:eq(0)', nRow).html( time_diff( Math.round((new Date()).getTime() / 1000), aData[0]));
+           $('td:eq(0)', nRow).addClass('time');
+           $('td:eq(1)', nRow).addClass('check_state_' + aData[3]);
+           $('td:eq(1)', nRow).html('<a href="/host/' + aData[1] + '">' + aData[1] + '</a>');
+           $('td:eq(2)', nRow).addClass('check_state_' + aData[3]);
+           $('td:eq(3)', nRow).addClass('check_state_' + aData[3]);
+           $('td:eq(4)', nRow).addClass('duration');
+           $('td:eq(4)', nRow).html( time_diff(Math.round((new Date()).getTime() / 1000), aData[4]));
+           if (status[aData[3]] != undefined ) {
+               $('td:eq(3)', nRow).html(status[aData[3]]);
+           }
+
+
+    }
+      } );
+    $("#refreshStatus").click(function(){
+        statusTable.fnReloadAjax();
+    });
+    setInterval(function() {
+          // Do something every 2 seconds
+        statusTable.fnReloadAjax();
+    }, 60000);
+;})
+
+
+</script>

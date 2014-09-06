@@ -1,6 +1,16 @@
+# editor crap
 *~
 .*.sw?
 .sw?
 \#*\#
 DEADJOE
+*.orig
+
+# make stuff
 Makefile.old
+
+# carton stuff
+local/*
+*/local
+cpanfile.snapshot
+*/cpanfile.snapshot
