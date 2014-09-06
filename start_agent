@@ -1,2 +1,3 @@
 #!/bin/bash
-agent/agent.pl
+cd agent
+carton exec bin/agent.pl

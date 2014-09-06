@@ -11,7 +11,7 @@ checks:
     url: http://localhost
     timeout: 2
 
-  http-devrandom:
+  http-localhost-dashboard:
     type: http
-    url: http://default.devrandom.pl
+    url: http://localhost:3000
     timeout: 10

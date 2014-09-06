@@ -12,6 +12,7 @@
   </head>
   <body>
     <%= content %>
-<%= $self->render('dashboard',partial => 1); %>
+    <%= $self->render_to_string('dashboard',partial => 1); %>
+    <$
   </body>
 </html>

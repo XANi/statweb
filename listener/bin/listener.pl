@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use common::sense;
-
+use FindBin;
+use lib "$FindBin::Bin/../lib";
 use Statweb::Backend::Listener;
 use YAML;
 use Log::Dispatch;
@@ -212,11 +213,10 @@ sub send_state_change {
     print LOG scalar localtime(time());
     my $msg = " Changed state of " . $new->{'service'} . '@' . $new->{'host'}
       . " from "
-      . $states->[ $old->{'state'} ] . ' to ' 
+      . $states->[ $old->{'state'} ] . ' to '
       . $states->[ $new->{'state'} ] . ' msg: ' . $new->{'msg'};
     print LOG $msg;
     print LOG "\n";
     system('/usr/local/bin/pushover.pl','--sound','pianobar',$msg);
     close(LOG);
 }
-

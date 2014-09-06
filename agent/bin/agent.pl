@@ -4,7 +4,7 @@ use common::sense;
 use Carp qw{ croak carp confess cluck};
 use ZeroMQ qw/:all/;
 use File::Slurp;
-use YAML;
+use YAML qw(Load LoadFile Dump);
 use JSON;
 use POSIX;
 use Log::Dispatch;
@@ -16,8 +16,19 @@ use List::Util qw(min max);
 use EV;
 use AnyEvent;
 
-my $tmp = read_file('/etc/statweb/agent.yaml') or croak("Can't load config: $!");
-my $cfg = Load($tmp) or croak("Can't parse config: $!");
+my $config_files = [
+    'cfg/config.yaml',
+    '/etc/statweb/agent.yaml',
+    'cfg/config.default.yaml',
+];
+my $cfg;
+foreach my $f (@$config_files) {
+    if (-r $f) {
+        print "Using config from $f\n";
+        $cfg = LoadFile($f);
+        last;
+    }
+}
 
 my $host = hostname;
 $0 = 'Statweb: agent';

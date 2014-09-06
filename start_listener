@@ -1,2 +1,3 @@
 #!/bin/bash
-perl -I ./dashboard/lib dashboard/bin/listener.pl $@
+cd listener
+carton exec bin/listener.pl $@

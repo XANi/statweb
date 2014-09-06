@@ -1,6 +1,20 @@
+# editor crap
 *~
 .*.sw?
 .sw?
 \#*\#
 DEADJOE
+*.orig
+
+# make stuff
 Makefile.old
+
+# carton stuff
+local/*
+*/local
+cpanfile.snapshot
+*/cpanfile.snapshot
+
+
+# dont commit user-created config
+*/cfg/config.yaml
