@@ -14,3 +14,7 @@ local/*
 */local
 cpanfile.snapshot
 */cpanfile.snapshot
+
+
+# dont commit user-created config
+*/cfg/config.yaml
