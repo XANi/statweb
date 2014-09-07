@@ -1,7 +1,11 @@
 requires 'common::sense';
 requires 'Moo';
+requires 'EV';
+requires 'AnyEvent';
+requires 'FindBin';
 requires 'AnyEvent::STOMP::Client';
 requires 'Log::Any';
+requires 'Log::Dispatch';
 requires 'JSON::XS';
 requires 'YAML::XS';
 requires 'Crypt::Mac::HMAC';
