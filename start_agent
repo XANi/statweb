@@ -1,3 +1,4 @@
 #!/bin/bash
-cd agent
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd $DIR/agent
 carton exec bin/agent.pl
