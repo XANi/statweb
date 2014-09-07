@@ -77,6 +77,7 @@ sub BUILD {
         }
     );
     $self->{'client'}->connect();
+    $log->debug("Connecting to " . $self->host . ':' . $self->port);
     if( defined( $self->msg_handler) ) {
         $self->{'client'}->on_connected(
             sub {

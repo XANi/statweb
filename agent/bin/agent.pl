@@ -69,7 +69,7 @@ $log->debug("Dumping config:\n" . Dump($cfg));
 
 my $stomp;
 if (defined( $cfg->{'sender'}{'stomp'} )) {
-    $stomp = Statweb::Transport::STOMP->new($cfg->{'sender'}{'stomp'});
+    $stomp = Statweb::Transport::STOMP->new($cfg->{'sender'}{'stomp'}{'config'});
 };
 
 $log->info("Starting check loop");
