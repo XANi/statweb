@@ -4,7 +4,6 @@ use common::sense;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Carp qw{ croak carp confess cluck};
-use File::Slurp;
 use YAML qw(Load LoadFile Dump);
 use JSON;
 use POSIX;

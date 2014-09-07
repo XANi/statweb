@@ -6,3 +6,6 @@
    Short term goal is to make a little monitoring tool for my bunch of machines, long term one, who knows, we will see ;]
 ** System deps (debian)
    + uuid-dev
+   + carton
+   + build-essentials (well, gcc and make for libs)
+   + nagios-plugins (good bunch of plugins to get you started via nagios compatiblity layer)
