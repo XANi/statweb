@@ -4,7 +4,6 @@ use common::sense;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Carp qw{ croak carp confess cluck};
-use ZeroMQ qw/:all/;
 use File::Slurp;
 use YAML qw(Load LoadFile Dump);
 use JSON;
@@ -73,12 +72,6 @@ my $stomp;
 if (defined( $cfg->{'sender'}{'stomp'} )) {
     $stomp = Statweb::Agent::Transport::STOMP->new($cfg->{'sender'}{'stomp'});
 };
-
-
-my $ctxt = ZeroMQ::Context->new();
-my $req = $ctxt->socket(ZMQ_PUB);
-$log->info("Binding to ZMQ addr " . $cfg->{'sender'}{'default'}{'config'}{'address'});
-$req->bind($cfg->{'sender'}{'default'}{'config'}{'address'});
 
 $log->info("Starting check loop");
 my $next_check_t=0;
@@ -160,8 +153,6 @@ sub send() {
     }
     $log->debug("sending with tag $tag");
     $log->debug(Dump $data);
-    $req->send($tag . '|' . to_json($data));
-
 }
 
 
