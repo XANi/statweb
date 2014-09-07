@@ -1,4 +1,4 @@
-package Statweb::Agent::Transport::STOMP;
+package Statweb::Transport::STOMP;
 use common::sense;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
@@ -94,4 +94,11 @@ sub send {
               $encoded_msg,
           );
 };
+
+sub recv {
+    my $self = shift;
+    my $recv_handle = shift;
+    $self->{'client'}->subscribe('/exchange/' . $self->exchange . '/' . $self->routing_key);
+    $self->{'client'}->on_message($recv_handle);
+}
 1;

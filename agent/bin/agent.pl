@@ -16,7 +16,7 @@ use List::Util qw(min max);
 
 use EV;
 use AnyEvent;
-use Statweb::Agent::Transport::STOMP;
+use Statweb::Transport::STOMP;
 
 
 my $config_files = [
@@ -70,7 +70,7 @@ $log->debug("Dumping config:\n" . Dump($cfg));
 
 my $stomp;
 if (defined( $cfg->{'sender'}{'stomp'} )) {
-    $stomp = Statweb::Agent::Transport::STOMP->new($cfg->{'sender'}{'stomp'});
+    $stomp = Statweb::Transport::STOMP->new($cfg->{'sender'}{'stomp'});
 };
 
 $log->info("Starting check loop");

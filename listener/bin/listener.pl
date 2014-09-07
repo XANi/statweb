@@ -2,7 +2,7 @@
 use common::sense;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
-use Statweb::Backend::Listener;
+use Statweb::Transport::STOMP;
 use YAML;
 use Log::Dispatch;
 use Log::Dispatch::Screen;
@@ -36,9 +36,7 @@ if ( defined($cfg->{'pid'}) ) {
 
 my $dbh = DBI->connect("dbi:SQLite:dbname=" . $cfg->{'db'},"","",{RaiseError => 1});
 
-my $zmq=Statweb::Backend::Listener->new(
-    address => $cfg->{'listener'}{'default'}{'address'}
-);
+my $stomp = Statweb::Transport::STOMP->new();
 
 my $default_ttl=600;
 
@@ -58,20 +56,22 @@ if ( $create_db ) {
 }
 my $sql = &prepare_sql($dbh);
 my $var;
-$zmq->listen(
-    sub {
-        ++$var;
-        my $data = shift;
-        if ( defined ( $data->{'type'} ) && $data->{'type'} eq 'state' ) {
-            if (! defined($data->{'ttl'}) ) {
-                $data->{'ttl'} = $default_ttl;
-            }
-            &insert_or_update_state($data);
-            &keepalive($data);
-        }
-    }
-);
+my $end = AnyEvent->condvar;
+# $zmq->listen(
+#     sub {
+#         ++$var;
+#         my $data = shift;
+#         if ( defined ( $data->{'type'} ) && $data->{'type'} eq 'state' ) {
+#             if (! defined($data->{'ttl'}) ) {
+#                 $data->{'ttl'} = $default_ttl;
+#             }
+#             &insert_or_update_state($data);
+#             &keepalive($data);
+#         }
+#     }
+# );
 
+$end->recv;
 
 
 sub _log_helper_timestamp {
