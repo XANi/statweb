@@ -3,13 +3,13 @@ use common::sense;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Statweb::Transport::STOMP;
-use YAML;
 use Log::Dispatch;
 use Log::Dispatch::Screen;
 use File::Slurp;
 use DBI;
 use POSIX;
 use YAML::XS;
+use JSON::XS;
 
 $0 = 'Statweb: listener';
 
@@ -35,10 +35,25 @@ if ( defined($cfg->{'pid'}) ) {
 }
 
 my $dbh = DBI->connect("dbi:SQLite:dbname=" . $cfg->{'db'},"","",{RaiseError => 1});
-
-my $stomp = Statweb::Transport::STOMP->new();
-
 my $default_ttl=600;
+my $stomp = Statweb::Transport::STOMP->new(
+    msg_handler => sub {
+        my ($self, $header, $body) = @_;
+        # TODO HMAC
+        my $data = decode_json($body);
+
+        if ( defined ( $data->{'type'} ) && $data->{'type'} eq 'state' ) {
+            if (! defined($data->{'ttl'}) ) {
+                $data->{'ttl'} = $default_ttl;
+            }
+            &insert_or_update_state($data);
+            &keepalive($data);
+        }
+    }
+);
+
+
+
 
 # TODO pack it into submodule
 my $log = Log::Dispatch->new();
@@ -61,12 +76,7 @@ my $end = AnyEvent->condvar;
 #     sub {
 #         ++$var;
 #         my $data = shift;
-#         if ( defined ( $data->{'type'} ) && $data->{'type'} eq 'state' ) {
-#             if (! defined($data->{'ttl'}) ) {
-#                 $data->{'ttl'} = $default_ttl;
-#             }
-#             &insert_or_update_state($data);
-#             &keepalive($data);
+
 #         }
 #     }
 # );

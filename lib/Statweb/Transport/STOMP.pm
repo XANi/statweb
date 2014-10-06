@@ -60,6 +60,11 @@ has hmac_key => (
     default => sub {"bogus mac" . rand()},
 );
 
+has msg_handler => (
+    is => 'ro',
+    default => undef,
+);
+
 sub BUILD {
     my $self = shift;
     $self->{'client'} = AnyEvent::STOMP::Client->new(
@@ -72,6 +77,25 @@ sub BUILD {
         }
     );
     $self->{'client'}->connect();
+    $log->debug("Connecting to " . $self->host . ':' . $self->port);
+    if( defined( $self->msg_handler) ) {
+        $self->{'client'}->on_connected(
+            sub {
+                print "Connected\n";
+                $self->{'client'}->subscribe('/exchange/' . $self->exchange . '/' . $self->routing_key);
+                $self->{'client'}->on_message($self->msg_handler);
+            }
+        );
+    }
+    else {
+        $self->{'client'}->on_connected(
+            sub {
+                print "Connected\n";
+            }
+        );
+    }
+
+
 };
 
 sub send {
@@ -95,10 +119,5 @@ sub send {
           );
 };
 
-sub recv {
-    my $self = shift;
-    my $recv_handle = shift;
-    $self->{'client'}->subscribe('/exchange/' . $self->exchange . '/' . $self->routing_key);
-    $self->{'client'}->on_message($recv_handle);
-}
+
 1;

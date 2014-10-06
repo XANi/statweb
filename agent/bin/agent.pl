@@ -4,9 +4,8 @@ use common::sense;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Carp qw{ croak carp confess cluck};
-use File::Slurp;
-use YAML qw(Load LoadFile Dump);
-use JSON;
+use YAML::XS qw(Load LoadFile Dump);
+use JSON::XS;
 use POSIX;
 use Log::Dispatch;
 use Log::Dispatch::Screen;
@@ -71,7 +70,7 @@ $log->debug("Dumping config:\n" . Dump($cfg));
 
 my $stomp;
 if (defined( $cfg->{'sender'}{'stomp'} )) {
-    $stomp = Statweb::Transport::STOMP->new($cfg->{'sender'}{'stomp'});
+    $stomp = Statweb::Transport::STOMP->new($cfg->{'sender'}{'stomp'}{'config'});
 };
 
 $log->info("Starting check loop");
