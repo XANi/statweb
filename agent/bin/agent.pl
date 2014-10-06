@@ -58,7 +58,8 @@ my $defaults = {
     default_check_interval => 300,
     keepalive => 60,
     randomize => 0,
-    random_start => 1,
+    random_start => 30,
+    start_delay => 10,
 };
 while ( my ($k, $v) = each(%$defaults) ) {
     if ( !defined( $cfg->{$k} ) ) {
@@ -104,7 +105,7 @@ while ( my ($check_name, $check) = each(%{ $cfg->{'checks'} } ) ) {
 
         $log->debug("Scheduling check $check_name with time $check_interval starting in " . $cfg->{'random_start'} .'s');
         $event->{$check_name} = AnyEvent->timer(
-            after => rand($cfg->{'random_start'}),
+            after => rand($cfg->{'random_start'}) + $cfg->{'start_delay'},
             interval => $check_interval,
             cb => sub {
                 my($code, $msg) = &check_nagios( $check->{'plugin'}, $params );
