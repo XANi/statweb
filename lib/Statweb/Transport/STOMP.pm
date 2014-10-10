@@ -42,6 +42,10 @@ has routing_key => (
     is => 'ro',
     default => sub {'status'},
 );
+has reconnect_interval => (
+    is => 'ro',
+    default => sub {5}
+);
 
 has hmac => (
     is => 'ro',
@@ -76,12 +80,21 @@ sub BUILD {
             'virtual-host' => $self->vhost
         }
     );
-    $self->{'client'}->connect();
-    $log->debug("Connecting to " . $self->host . ':' . $self->port);
+    $self->{'watchdog'} = AnyEvent->timer(
+        after => 60,
+        interval => 20,
+        cb => sub {
+            if (!$self->{'client'}->is_connected) {
+                $log->warn("watchdog: Not connected, reconnecting");
+                $self->connect;
+
+            }
+        }
+    );
     if( defined( $self->msg_handler) ) {
         $self->{'client'}->on_connected(
             sub {
-                print "Connected\n";
+                $log->info("Connected");
                 $self->{'client'}->subscribe('/exchange/' . $self->exchange . '/' . $self->routing_key);
                 $self->{'client'}->on_message($self->msg_handler);
             }
@@ -90,13 +103,58 @@ sub BUILD {
     else {
         $self->{'client'}->on_connected(
             sub {
-                print "Connected\n";
+                $log->info("Connected");
             }
         );
     }
-
-
+    $self->{'client'}->on_disconnected(
+        sub {
+            $log->error("disconnected via DISCONNECT frame");
+            $self->{'reconnect_timer'} = AnyEvent->timer(
+                after => $self->reconnect_interval,
+                cb => sub {
+                    delete $self->{'reconnect_timer'};
+                    $self->connect;
+                },
+            );
+        }
+    );
+    $self->{'client'}->on_connect_error(
+        sub {
+            $log->error("connect error");
+            $self->{'reconnect_timer'} = AnyEvent->timer(
+                after => $self->reconnect_interval,
+                cb => sub {
+                    delete $self->{'reconnect_timer'};
+                    $self->connect;
+                },
+            );
+        }
+    );
+    $self->{'client'}->on_connection_lost(
+        sub {
+            $log->error("connection lost");
+            $self->{'reconnect_timer'} = AnyEvent->timer(
+                after => $self->reconnect_interval,
+                cb => sub {
+                    delete $self->{'reconnect_timer'};
+                    $self->connect;
+                },
+            );
+        }
+    );
+    $self->connect;
 };
+
+sub connect {
+    my $self = shift;
+    $log->info('Connecting to ' . $self->host . ':' . $self->port . ' vhost: ' . $self->vhost);
+    $self->{'client'}->connect();
+
+}
+
+
+
 
 sub send {
     my $self = shift;
