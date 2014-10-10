@@ -42,6 +42,7 @@ has routing_key => (
     is => 'ro',
     default => sub {'status'},
 );
+
 has reconnect_interval => (
     is => 'ro',
     default => sub {5}
@@ -82,7 +83,7 @@ sub BUILD {
     );
     $self->{'watchdog'} = AnyEvent->timer(
         after => 60,
-        interval => 20,
+        interval => 600,
         cb => sub {
             if (!$self->{'client'}->is_connected) {
                 $log->warn("watchdog: Not connected, reconnecting");
