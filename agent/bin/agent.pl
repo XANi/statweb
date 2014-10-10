@@ -7,6 +7,8 @@ use Carp qw{ croak carp confess cluck};
 use YAML::XS qw(Load LoadFile Dump);
 use JSON::XS;
 use POSIX;
+use Log::Any qw($log);
+use Log::Any::Adapter;
 use Log::Dispatch;
 use Log::Dispatch::Screen;
 use Sys::Hostname;
@@ -43,15 +45,15 @@ if ( defined($cfg->{'pid'}) ) {
 }
 
 #   # Send all logs to Log::Dispatch
-my $log = Log::Dispatch->new();
-$log->add(
+my $logger = Log::Dispatch->new();
+$logger->add(
     Log::Dispatch::Screen->new(
         name      => 'screen',
         min_level => 'debug',
         callbacks => (\&_log_helper_timestamp),
     )
 );
-
+Log::Any::Adapter->set( 'Dispatch', dispatcher => $logger );
 # init default vars if not defined
 my $defaults = {
     default_check_interval => 300,
