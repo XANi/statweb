@@ -5,6 +5,8 @@ requires 'AnyEvent';
 requires 'FindBin';
 requires 'AnyEvent::STOMP::Client';
 requires 'Log::Any';
+requires 'Log::Any::Adapter';
+requires 'Log::Any::Adapter::Dispatch';
 requires 'Log::Dispatch';
 requires 'JSON::XS';
 requires 'YAML::XS';
