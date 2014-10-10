@@ -2,4 +2,7 @@
 export PATH=$PATH:/usr/local/bin
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $DIR/agent
+if [ ! -e cpanfile.snapshot ] ; then
+    carton install
+fi
 carton exec bin/agent.pl
